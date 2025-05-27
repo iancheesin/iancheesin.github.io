@@ -1,4 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const app_1 = __importDefault(require("firebase/compat/app"));
+require("firebase/compat/auth");
+require("firebase/compat/database");
+require("firebase/compat/firestore");
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -527,6 +535,7 @@ function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, low
     });
 }
 function onSubmitUserInfo() {
+    var database = app_1.default.database();
     const form = document.getElementById('userInfoForm');
     if (form) {
         form.addEventListener('submit', (event) => {
@@ -546,6 +555,7 @@ function onSubmitUserInfo() {
                 if (body !== null) {
                     body.innerHTML = `<p id="loading">Loading...</p>`;
                 }
+                console.log(database);
                 google.script.run.withSuccessHandler(function (dataString) {
                     setSpreadsheetDataCookies(dataString);
                     if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
@@ -647,6 +657,10 @@ function setSpreadsheetDataCookies(data) {
     document.cookie = `tomorrowSales=${data[3]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     document.cookie = `thisWeekSales=;expires=Fri, 12 Jan 2018`;
     document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    if (false) {
+        onLoad();
+        getSpreadsheetData();
+    }
 }
 function onLoad() {
     const locations = getLocations();
