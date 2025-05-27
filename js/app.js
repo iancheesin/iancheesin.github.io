@@ -1,12 +1,10 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = __importDefault(require("firebase/compat/app"));
-require("firebase/compat/auth");
-require("firebase/compat/database");
-require("firebase/compat/firestore");
+// import { initializeApp } from "./firebase/app";
+// import { database } from "./firebase/database";
+
+// import firebase from "firebase/compat/app";
+// import 'firebase/compat/auth';
+// import "firebase/compat/database";
+// import 'firebase/compat/firestore';
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -535,7 +533,9 @@ function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, low
     });
 }
 function onSubmitUserInfo() {
-    var database = app_1.default.database();
+    
+    // var app = firebase.initializeApp(firebaseConfig);
+    var database = firebase.database();
     const form = document.getElementById('userInfoForm');
     if (form) {
         form.addEventListener('submit', (event) => {
@@ -555,6 +555,7 @@ function onSubmitUserInfo() {
                 if (body !== null) {
                     body.innerHTML = `<p id="loading">Loading...</p>`;
                 }
+                console.log(`database:`);
                 console.log(database);
                 google.script.run.withSuccessHandler(function (dataString) {
                     setSpreadsheetDataCookies(dataString);
