@@ -616,8 +616,8 @@ async function getSalesHoursJson(location: string = 'Norcross'): Promise<string>
     let jsonStrItems = '';
     await dbRef.child('Sales and Hours').child(location).get().then( (snapshot) => {
         if (snapshot.exists()) {
-            console.log(`Sales & Hours JSON in getSalesHoursJson:`);
-            console.log(JSON.stringify(snapshot.val()));
+            // console.log(`Sales & Hours JSON in getSalesHoursJson:`);
+            // console.log(JSON.stringify(snapshot.val()));
             jsonStrItems = JSON.stringify(snapshot.val());
         } else {
             console.log('No data available');
@@ -650,13 +650,13 @@ async function onSubmitUserInfo(){
                 
                 let body = document.getElementById('body');
                 let dataString = await getFirebaseData(getCookie('location'));
-                console.log(`Data string:`);
-                console.log(dataString);
+                // console.log(`Data string:`);
+                // console.log(dataString);
                 if (body !== null) {
                     body.innerHTML = `<p id="loading">Loading...</p>`;
                 }
-                console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
-                console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);
+                // console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
+                // console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);
                 setSpreadsheetDataCookies(dataString);
                 if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
                     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
@@ -715,7 +715,7 @@ function onSubmitInventory(){
 
 function getItems(locationStr = ''): Item[] {
     let itemArrStr = getCookie('itemArr');
-    console.log(`Item array cookie: ${getCookie('itemArr')}`);
+    // console.log(`Item array cookie: ${getCookie('itemArr')}`);
     console.log(locationStr);
     if(itemArrStr === undefined) {
         return JSON.parse('error');
@@ -725,19 +725,19 @@ function getItems(locationStr = ''): Item[] {
 }
 
 function getPrepHours(locationStr: string = ''): number{
-    console.log(getCookie('todayPrepHours'));
+    // console.log(getCookie('todayPrepHours'));
     console.log(locationStr);
     return Number(getCookie('todayPrepHours'));
 }
 
 function getTomorrowSales(locationStr: string = ''): number{ // TODO: Check if null/undefined and throw error
-    console.log(getCookie('tomorrowSales'));
+    // console.log(getCookie('tomorrowSales'));
     console.log(locationStr);
     return Number(getCookie('tomorrowSales'));
 }
 
 function getThisWeekSales(locationStr: string = ''): number{
-    console.log(getCookie('thisWeekSales'));
+    // console.log(getCookie('thisWeekSales'));
     console.log(locationStr);
     return Number(getCookie('thisWeekSales'));
 }
@@ -745,8 +745,8 @@ function getThisWeekSales(locationStr: string = ''): number{
 function setSpreadsheetDataCookies(data: string[]) {
     //TODO: rework this function to take in a record with labels for the array types to make it more robust
     
-    console.log("JSON string array passed to the cookie setter function:");
-    console.log(data);
+    // console.log("JSON string array passed to the cookie setter function:");
+    // console.log(data);
 
     //Store full sales & hours data JSON
     //1. delete the old cookie, if it exists
@@ -859,7 +859,7 @@ function onLoad(){
 
 async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
     const salesArr: SalesHoursObj[] | undefined = JSON.parse(await getSalesHoursJson());
-    // const itemArr: object[][] | undefined = JSON.parse(await getItemJson());
+    let thisWeekSalesArr: SalesHoursObj[] = [];
     let todayPrepHours: number;
     let tomorrowSales: number;
     let thisWeekSales: number = 0;
@@ -918,6 +918,7 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
         }
         for(let i = 1; i <= 7; i++) {
             thisWeekSales += Number(salesArr[row+i]['Historical Sales']);
+            thisWeekSalesArr[i-1] = salesArr[row+i];
         }
         console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row]['Historical Sales']} sales`);
         console.log(`This week's sales calcualted to be ${thisWeekSales}`);
@@ -927,7 +928,7 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
         }
     }
 
-    return [await getSalesHoursJson(), await getItemJson(), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
+    return [JSON.stringify(thisWeekSalesArr), await getItemJson(), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
 
 }
 
