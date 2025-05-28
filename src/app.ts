@@ -68,7 +68,7 @@ function parseCookie(cookie: string | undefined){
     if (cookie){
         return JSON.parse(cookie);
     }else{
-        console.log("oh no, we didn't find inventoryCookie!");
+        console.log(`oh no, we didn't find that cookie! For cookie name ${cookie}`);
     }
 }
 
@@ -605,13 +605,13 @@ async function getItemJson(location: string = 'Norcross'): Promise<string> {
     let jsonStrItems = '';
     await dbRef.child('Item Lists').child(location).get().then( (snapshot) => {
         if (snapshot.exists()) {
-            console.log(JSON.stringify(snapshot.val()));
+            //console.log(JSON.stringify(snapshot.val()));
             jsonStrItems = JSON.stringify(snapshot.val());
         } else {
             console.log('No data available');
         }
     }).catch((error) => {
-        console.log(error);
+        console.log(`Whoops! Error in getItemJson: ${error}`);
     });
     return jsonStrItems;
 }
@@ -621,13 +621,14 @@ async function getSalesHoursJson(location: string = 'Norcross'): Promise<string>
     let jsonStrItems = '';
     await dbRef.child('Sales and Hours').child(location).get().then( (snapshot) => {
         if (snapshot.exists()) {
+            console.log(`Sales & Hours JSON in getSalesHoursJson:`);
             console.log(JSON.stringify(snapshot.val()));
             jsonStrItems = JSON.stringify(snapshot.val());
         } else {
             console.log('No data available');
         }
     }).catch((error) => {
-        console.log(error);
+        console.log(`Whoops! Error in getSalesHoursJson: ${error}`);
     });
     return jsonStrItems;
 }
@@ -653,24 +654,25 @@ async function onSubmitUserInfo(){
 
                 
                 let body = document.getElementById('body');
-                if(body !== null) {
+                let dataString = await getFirebaseData(getCookie('location'));
+                console.log(`Data string:`);
+                console.log(dataString);
+                if (body !== null) {
                     body.innerHTML = `<p id="loading">Loading...</p>`;
                 }
-                await console.log(getFirebaseData(getCookie('location')));
-                await console.log(getItemJson(getCookie('location')));
-                await console.log(getSalesHoursJson(getCookie('location')));
-                google.script.run.withSuccessHandler(function(dataString) { //once we get the location, load the data, then we can move on...
-                    //TODO: make another function that setSpreadsheetDataCookies calls or that is called after it that does the rest...?
-                    setSpreadsheetDataCookies(dataString);
-                    if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")){
-                        displayPrepLists(highPriorityFinished,highPriorityUnfinished,lowPrioritySelected,extraPrepList);
-                    }else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")){
-                        makePrepList();
-                    }else{
-                        inventoryForm('body');
-                        onSubmitInventory();
-                    }
-                }).getSpreadsheetData(getCookie('location'));
+                console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
+                console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);
+                setSpreadsheetDataCookies(dataString);
+                if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
+                    displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
+                }
+                else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
+                    makePrepList();
+                }
+                else {
+                    inventoryForm('body');
+                    onSubmitInventory();
+                }
             }else if(!form.nameInput.value){
                 alert('Please input your name');
             }else{
@@ -718,10 +720,10 @@ function onSubmitInventory(){
 
 function getItems(locationStr = ''): Item[] {
     let itemArrStr = getCookie('itemArr');
-    console.log(getCookie('itemArr'));
+    console.log(`Item array cookie: ${getCookie('itemArr')}`);
     console.log(locationStr);
     if(itemArrStr === undefined) {
-        return JSON.parse('');
+        return JSON.parse('error');
     } else {
         return JSON.parse(itemArrStr);
     }
@@ -752,17 +754,17 @@ function setSpreadsheetDataCookies(data: string[]) {
     console.log(data);
 
     //Store full sales & hours data JSON
+    //1. delete the old cookie, if it exists
+    document.cookie=`salesHoursArr=;expires=Fri, 12 Jan 2018`;
+    //2. create a new inventory cookie, which should be just one cookie storing a Record
+    document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    //TODO: for some reason the sales hours array is saving as data[0] in the coookie...
+    
     //store item JSON
     //1. delete the old cookie, if it exists
     document.cookie=`itemArr=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
-    document.cookie = `itemArr=${data[0]};expires=${midnight()};Partitioned;SameSite=none; secure`;
-
-    //1. delete the old cookie, if it exists
-    document.cookie=`salesHoursArr=;expires=Fri, 12 Jan 2018`;
-    //2. create a new inventory cookie, which should be just one cookie storing a Record
-    document.cookie = `salesHoursArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
-    //TODO: for some reason the sales hours array is saving as data[0] in the coookie...
+    document.cookie = `itemArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
 
     //store today prep hours data
     //1. delete the old cookie, if it exists
@@ -784,7 +786,7 @@ function setSpreadsheetDataCookies(data: string[]) {
 
     if(false) {
         onLoad();
-        getSpreadsheetData();
+        // getSpreadsheetData();
     }
 }
 
@@ -795,70 +797,70 @@ function onLoad(){
 }
 
 //**IMPORTANT** The following function(s) need(s) to be placed in the Code.gs file, not the JavaScript.html file
-function getJsonStringFromItemArr(data:any[][] | undefined): string {
-    //see https://stackoverflow.com/questions/47555347/creating-a-json-object-from-google-sheets
-  if(data === undefined) {
-    console.log(`Error with the data in getJsonArrayFromData being undefined`);
-    return '';
-  }
-  var obj:Record<string, Object> = {};
-  var result:Object[] = [];
-  var headers:any[] = data[0];
-  var cols:number = headers.length;
-  var row:any[];
+// function getJsonStringFromItemArr(data:any[][] | undefined): string {
+//     //see https://stackoverflow.com/questions/47555347/creating-a-json-object-from-google-sheets
+//   if(data === undefined) {
+//     console.log(`Error with the data in getJsonArrayFromData being undefined`);
+//     return '';
+//   }
+//   var obj:Record<string, Object> = {};
+//   var result:Object[] = [];
+//   var headers:any[] = data[0];
+//   var cols:number = headers.length;
+//   var row:any[];
 
-  for (var i = 1, l = data.length; i < l; i++)
-  {
-    // get a row to fill the object
-    row = data[i];
-    // clear object
-    obj = {};
-    for (var col = 0; col < cols; col++) 
-    {
-      // fill object with new values
-      if(row[col] === 'true' || row[col] === 'false') { //converts bools to Boolean
-        obj[headers[col]] = (row[col] === 'true');
-      } else if (String(row[col])[0] === '[') {
-        obj[headers[col]] = JSON.parse(row[col]); //keeps arrays as arrays
-      } else {
-        obj[headers[col]] = String(row[col]);
-      }
+//   for (var i = 1, l = data.length; i < l; i++)
+//   {
+//     // get a row to fill the object
+//     row = data[i];
+//     // clear object
+//     obj = {};
+//     for (var col = 0; col < cols; col++) 
+//     {
+//       // fill object with new values
+//       if(row[col] === 'true' || row[col] === 'false') { //converts bools to Boolean
+//         obj[headers[col]] = (row[col] === 'true');
+//       } else if (String(row[col])[0] === '[') {
+//         obj[headers[col]] = JSON.parse(row[col]); //keeps arrays as arrays
+//       } else {
+//         obj[headers[col]] = String(row[col]);
+//       }
 
-    }
-    // add object in a final result
-    result.push(obj);  
-  }
-  console.log(result);
-  return JSON.stringify(result);
-}
+//     }
+//     // add object in a final result
+//     result.push(obj);  
+//   }
+//   console.log(result);
+//   return JSON.stringify(result);
+// }
 
-function getJsonStringFromSalesArr(data:any[][] | undefined): string {
-    if(data === undefined) {
-        console.log(`Error with the data in getJsonArrayFromData being undefined`);
-        return '';
-      }
-      var result:(string|number)[][] = [[]];
-      var headers:any[] = data[0];
-      var cols:number = headers.length;
-      var row:any[];
+// function getJsonStringFromSalesArr(data:any[][] | undefined): string {
+//     if(data === undefined) {
+//         console.log(`Error with the data in getJsonArrayFromData being undefined`);
+//         return '';
+//       }
+//       var result:(string|number)[][] = [[]];
+//       var headers:any[] = data[0];
+//       var cols:number = headers.length;
+//       var row:any[];
     
-      for (var i = 0, l = data.length; i < l; i++)
-      {
-        // get a row to fill the object
-        row = data[i];
-        result[i] = [];
-        for (var col = 0; col < cols; col++) 
-        {
-            if(!isNaN(Number(row[col])) && String(row[col]).trim() !== '') { //check if number
-                result[i][col] = Number(row[col]);
-            } else {
-                result[i][col] = String(row[col]);
-            }    
-        }
-      }
-      console.log(result);
-      return JSON.stringify(result);
-}
+//       for (var i = 0, l = data.length; i < l; i++)
+//       {
+//         // get a row to fill the object
+//         row = data[i];
+//         result[i] = [];
+//         for (var col = 0; col < cols; col++) 
+//         {
+//             if(!isNaN(Number(row[col])) && String(row[col]).trim() !== '') { //check if number
+//                 result[i][col] = Number(row[col]);
+//             } else {
+//                 result[i][col] = String(row[col]);
+//             }    
+//         }
+//       }
+//       console.log(result);
+//       return JSON.stringify(result);
+// }
 
 async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
     const salesArr: SalesHoursObj[] | undefined = JSON.parse(await getSalesHoursJson());
@@ -869,9 +871,11 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
 
     //get prep hours
     const today: Date = new Date();
-    const todayStr: string = `${(today.getMonth()+1 < 10)? '0':''}${today.getMonth()+1}-${today.getDate()}-${today.getFullYear()}`;
+    const todayStr: string = `${today.getMonth()+1}-${today.getDate()}-${today.getFullYear()}`;
     let row: number = 0;
     
+    //console.log(salesArr);
+
     if(salesArr === undefined) {
         console.log(`In getPrepHours; salesArr is undefined`);
         todayPrepHours = 8;
@@ -932,92 +936,92 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
 
 }
 
-function getSpreadsheetData(locationStr: string = ''): string[] {
-    //TODO: rework this function to output a record with labels for the strings to make it more robust
-    const salesArr: object[][] | undefined = SpreadsheetApp.openById('15CvkTxN6k4RjzjKpEqdXsGg68hhH7RXkY_JtqfMxvyQ').getSheetByName(locationStr+' Sales')?.getDataRange().getValues();
-    const itemArr: object[][] | undefined = SpreadsheetApp.openById('15CvkTxN6k4RjzjKpEqdXsGg68hhH7RXkY_JtqfMxvyQ')?.getSheetByName(locationStr+' Item List')?.getDataRange().getValues();
-    let todayPrepHours: number;
-    let tomorrowSales: number;
-    let thisWeekSales: number = 0;
+// function getSpreadsheetData(locationStr: string = ''): string[] {
+//     //TODO: rework this function to output a record with labels for the strings to make it more robust
+//     const salesArr: object[][] | undefined = SpreadsheetApp.openById('15CvkTxN6k4RjzjKpEqdXsGg68hhH7RXkY_JtqfMxvyQ').getSheetByName(locationStr+' Sales')?.getDataRange().getValues();
+//     const itemArr: object[][] | undefined = SpreadsheetApp.openById('15CvkTxN6k4RjzjKpEqdXsGg68hhH7RXkY_JtqfMxvyQ')?.getSheetByName(locationStr+' Item List')?.getDataRange().getValues();
+//     let todayPrepHours: number;
+//     let tomorrowSales: number;
+//     let thisWeekSales: number = 0;
 
-    //get prep hours
-    const today: Date = new Date();
-    const todayStr: string = `${today.getMonth()+1}/${today.getDate()}/${today.getFullYear()}`
-    let row: number = 0;
-    let hoursCol: number = 0;
+//     //get prep hours
+//     const today: Date = new Date();
+//     const todayStr: string = `${today.getMonth()+1}/${today.getDate()}/${today.getFullYear()}`
+//     let row: number = 0;
+//     let hoursCol: number = 0;
 
-    if(salesArr === undefined) {
-        console.log(`In getPrepHours; salesArr is undefined`);
-        todayPrepHours = 8;
-    }
-    else {
-        for (let i = 0; i < salesArr[0].length; i++) {
-            if (String(salesArr[0][i]) === 'Prep Hours') {
-                hoursCol = i;
-            }
-        }
-        while( String(salesArr[row][0]) !== todayStr && row < salesArr.length) {
-            row++;
-        }
-        console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row][hoursCol]} hours`);
-        if (locationStr){
-            todayPrepHours = Number(salesArr[row][hoursCol]); 
-        }else{
-            console.log('Error in getSpreadsheetData with prep hours; default to 8');
-            todayPrepHours = 8;
-        }
-    }
-    //get tomorrow sales
-    row = 0;
-    let salesCol: number = 0;
+//     if(salesArr === undefined) {
+//         console.log(`In getPrepHours; salesArr is undefined`);
+//         todayPrepHours = 8;
+//     }
+//     else {
+//         for (let i = 0; i < salesArr[0].length; i++) {
+//             if (String(salesArr[0][i]) === 'Prep Hours') {
+//                 hoursCol = i;
+//             }
+//         }
+//         while( String(salesArr[row][0]) !== todayStr && row < salesArr.length) {
+//             row++;
+//         }
+//         console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row][hoursCol]} hours`);
+//         if (locationStr){
+//             todayPrepHours = Number(salesArr[row][hoursCol]); 
+//         }else{
+//             console.log('Error in getSpreadsheetData with prep hours; default to 8');
+//             todayPrepHours = 8;
+//         }
+//     }
+//     //get tomorrow sales
+//     row = 0;
+//     let salesCol: number = 0;
 
-    if(salesArr === undefined) {
-        console.log(`In getTomorrowSales; salesArr is undefined`);
-        tomorrowSales = 0;
-    } else {
-        for (let i = 0; i < salesArr[0].length; i++) {
-            if (String(salesArr[0][i]) === 'Historical Sales') {
-                salesCol = i;
-            }
-        }
-        while( (salesArr[row][0] as unknown as string) !== todayStr && row < salesArr.length) {
-            row++;
-        }
-        console.log(`Tomorrows date of ${salesArr[row+1][0]} found at row ${row+2} with value ${salesArr[row+1][salesCol]} sales`);
-        if (locationStr){
-            tomorrowSales = Number(salesArr[row+1][salesCol]); 
-        }else{
-            console.log('OH NOoOoO -yours truly, getTomorrowSales');
-            tomorrowSales = 0;
-        }
-    }
+//     if(salesArr === undefined) {
+//         console.log(`In getTomorrowSales; salesArr is undefined`);
+//         tomorrowSales = 0;
+//     } else {
+//         for (let i = 0; i < salesArr[0].length; i++) {
+//             if (String(salesArr[0][i]) === 'Historical Sales') {
+//                 salesCol = i;
+//             }
+//         }
+//         while( (salesArr[row][0] as unknown as string) !== todayStr && row < salesArr.length) {
+//             row++;
+//         }
+//         console.log(`Tomorrows date of ${salesArr[row+1][0]} found at row ${row+2} with value ${salesArr[row+1][salesCol]} sales`);
+//         if (locationStr){
+//             tomorrowSales = Number(salesArr[row+1][salesCol]); 
+//         }else{
+//             console.log('OH NOoOoO -yours truly, getTomorrowSales');
+//             tomorrowSales = 0;
+//         }
+//     }
     
-    //calculate this week sales
-    row = 0;
-    salesCol = 0;
+//     //calculate this week sales
+//     row = 0;
+//     salesCol = 0;
 
-    if(salesArr === undefined) {
-        console.log(`In getThisWeekSales; salesArr is undefined`);
-        thisWeekSales = 0;
-    } else {
-        for (let i = 0; i < salesArr[0].length; i++) {
-            if (String(salesArr[0][i]) === 'Historical Sales') {
-                salesCol = i;
-            }
-        }
-        while( String(salesArr[row][0]) !== todayStr && row < salesArr.length) {
-            row++;
-        }
-        for(let i = 1; i <= 7; i++) {
-            thisWeekSales += Number(salesArr[row+i][salesCol]);
-        }
-        console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row][salesCol]} sales`);
-        console.log(`This week's sales calcualted to be ${thisWeekSales}`);
-        if (!locationStr){
-            console.log('OH NOoOoO -yours truly, getTomorrowSales');
-            thisWeekSales = 0;
-        }
-    }
+//     if(salesArr === undefined) {
+//         console.log(`In getThisWeekSales; salesArr is undefined`);
+//         thisWeekSales = 0;
+//     } else {
+//         for (let i = 0; i < salesArr[0].length; i++) {
+//             if (String(salesArr[0][i]) === 'Historical Sales') {
+//                 salesCol = i;
+//             }
+//         }
+//         while( String(salesArr[row][0]) !== todayStr && row < salesArr.length) {
+//             row++;
+//         }
+//         for(let i = 1; i <= 7; i++) {
+//             thisWeekSales += Number(salesArr[row+i][salesCol]);
+//         }
+//         console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row][salesCol]} sales`);
+//         console.log(`This week's sales calcualted to be ${thisWeekSales}`);
+//         if (!locationStr){
+//             console.log('OH NOoOoO -yours truly, getTomorrowSales');
+//             thisWeekSales = 0;
+//         }
+//     }
 
-    return [getJsonStringFromItemArr(itemArr), getJsonStringFromSalesArr(salesArr), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
-}
+//     return [getJsonStringFromItemArr(itemArr), getJsonStringFromSalesArr(salesArr), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
+// }

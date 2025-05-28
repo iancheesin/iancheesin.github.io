@@ -36,7 +36,7 @@ function parseCookie(cookie) {
         return JSON.parse(cookie);
     }
     else {
-        console.log("oh no, we didn't find inventoryCookie!");
+        console.log(`oh no, we didn't find that cookie! For cookie name ${cookie}`);
     }
 }
 function midnight() {
@@ -530,14 +530,13 @@ async function getItemJson(location = 'Norcross') {
     let jsonStrItems = '';
     await dbRef.child('Item Lists').child(location).get().then((snapshot) => {
         if (snapshot.exists()) {
-            console.log(JSON.stringify(snapshot.val()));
             jsonStrItems = JSON.stringify(snapshot.val());
         }
         else {
             console.log('No data available');
         }
     }).catch((error) => {
-        console.log(error);
+        console.log(`Whoops! Error in getItemJson: ${error}`);
     });
     return jsonStrItems;
 }
@@ -546,6 +545,7 @@ async function getSalesHoursJson(location = 'Norcross') {
     let jsonStrItems = '';
     await dbRef.child('Sales and Hours').child(location).get().then((snapshot) => {
         if (snapshot.exists()) {
+            console.log(`Sales & Hours JSON in getSalesHoursJson:`);
             console.log(JSON.stringify(snapshot.val()));
             jsonStrItems = JSON.stringify(snapshot.val());
         }
@@ -553,7 +553,7 @@ async function getSalesHoursJson(location = 'Norcross') {
             console.log('No data available');
         }
     }).catch((error) => {
-        console.log(error);
+        console.log(`Whoops! Error in getSalesHoursJson: ${error}`);
     });
     return jsonStrItems;
 }
@@ -574,25 +574,25 @@ async function onSubmitUserInfo() {
                 const extraPrepList = parseCookie(ePL);
                 const inventoryCookie = getCookie('inventory');
                 let body = document.getElementById('body');
+                let dataString = await getFirebaseData(getCookie('location'));
+                console.log(`Data string:`);
+                console.log(dataString);
                 if (body !== null) {
                     body.innerHTML = `<p id="loading">Loading...</p>`;
                 }
-                await console.log(getFirebaseData(getCookie('location')));
-                await console.log(getItemJson(getCookie('location')));
-                await console.log(getSalesHoursJson(getCookie('location')));
-                google.script.run.withSuccessHandler(function (dataString) {
-                    setSpreadsheetDataCookies(dataString);
-                    if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
-                        displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
-                    }
-                    else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
-                        makePrepList();
-                    }
-                    else {
-                        inventoryForm('body');
-                        onSubmitInventory();
-                    }
-                }).getSpreadsheetData(getCookie('location'));
+                console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
+                console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);
+                setSpreadsheetDataCookies(dataString);
+                if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
+                    displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
+                }
+                else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
+                    makePrepList();
+                }
+                else {
+                    inventoryForm('body');
+                    onSubmitInventory();
+                }
             }
             else if (!form.nameInput.value) {
                 alert('Please input your name');
@@ -644,10 +644,10 @@ function onSubmitInventory() {
 }
 function getItems(locationStr = '') {
     let itemArrStr = getCookie('itemArr');
-    console.log(getCookie('itemArr'));
+    console.log(`Item array cookie: ${getCookie('itemArr')}`);
     console.log(locationStr);
     if (itemArrStr === undefined) {
-        return JSON.parse('');
+        return JSON.parse('error');
     }
     else {
         return JSON.parse(itemArrStr);
@@ -671,10 +671,10 @@ function getThisWeekSales(locationStr = '') {
 function setSpreadsheetDataCookies(data) {
     console.log("JSON string array passed to the cookie setter function:");
     console.log(data);
-    document.cookie = `itemArr=;expires=Fri, 12 Jan 2018`;
-    document.cookie = `itemArr=${data[0]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     document.cookie = `salesHoursArr=;expires=Fri, 12 Jan 2018`;
-    document.cookie = `salesHoursArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `itemArr=;expires=Fri, 12 Jan 2018`;
+    document.cookie = `itemArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     document.cookie = `todayPrepHours=;expires=Fri, 12 Jan 2018`;
     document.cookie = `todayPrepHours=${data[2]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     document.cookie = `tomorrowSales=;expires=Fri, 12 Jan 2018`;
@@ -683,7 +683,6 @@ function setSpreadsheetDataCookies(data) {
     document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     if (false) {
         onLoad();
-        getSpreadsheetData();
     }
 }
 function onLoad() {
@@ -691,66 +690,13 @@ function onLoad() {
     userInfo(locations, 'body');
     onSubmitUserInfo();
 }
-function getJsonStringFromItemArr(data) {
-    if (data === undefined) {
-        console.log(`Error with the data in getJsonArrayFromData being undefined`);
-        return '';
-    }
-    var obj = {};
-    var result = [];
-    var headers = data[0];
-    var cols = headers.length;
-    var row;
-    for (var i = 1, l = data.length; i < l; i++) {
-        row = data[i];
-        obj = {};
-        for (var col = 0; col < cols; col++) {
-            if (row[col] === 'true' || row[col] === 'false') {
-                obj[headers[col]] = (row[col] === 'true');
-            }
-            else if (String(row[col])[0] === '[') {
-                obj[headers[col]] = JSON.parse(row[col]);
-            }
-            else {
-                obj[headers[col]] = String(row[col]);
-            }
-        }
-        result.push(obj);
-    }
-    console.log(result);
-    return JSON.stringify(result);
-}
-function getJsonStringFromSalesArr(data) {
-    if (data === undefined) {
-        console.log(`Error with the data in getJsonArrayFromData being undefined`);
-        return '';
-    }
-    var result = [[]];
-    var headers = data[0];
-    var cols = headers.length;
-    var row;
-    for (var i = 0, l = data.length; i < l; i++) {
-        row = data[i];
-        result[i] = [];
-        for (var col = 0; col < cols; col++) {
-            if (!isNaN(Number(row[col])) && String(row[col]).trim() !== '') {
-                result[i][col] = Number(row[col]);
-            }
-            else {
-                result[i][col] = String(row[col]);
-            }
-        }
-    }
-    console.log(result);
-    return JSON.stringify(result);
-}
 async function getFirebaseData(locationStr = '') {
     const salesArr = JSON.parse(await getSalesHoursJson());
     let todayPrepHours;
     let tomorrowSales;
     let thisWeekSales = 0;
     const today = new Date();
-    const todayStr = `${(today.getMonth() + 1 < 10) ? '0' : ''}${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
     let row = 0;
     if (salesArr === undefined) {
         console.log(`In getPrepHours; salesArr is undefined`);
@@ -808,88 +754,4 @@ async function getFirebaseData(locationStr = '') {
     }
     return [await getSalesHoursJson(), await getItemJson(), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
 }
-function getSpreadsheetData(locationStr = '') {
-    var _a, _b, _c;
-    const salesArr = (_a = SpreadsheetApp.openById('15CvkTxN6k4RjzjKpEqdXsGg68hhH7RXkY_JtqfMxvyQ').getSheetByName(locationStr + ' Sales')) === null || _a === void 0 ? void 0 : _a.getDataRange().getValues();
-    const itemArr = (_c = (_b = SpreadsheetApp.openById('15CvkTxN6k4RjzjKpEqdXsGg68hhH7RXkY_JtqfMxvyQ')) === null || _b === void 0 ? void 0 : _b.getSheetByName(locationStr + ' Item List')) === null || _c === void 0 ? void 0 : _c.getDataRange().getValues();
-    let todayPrepHours;
-    let tomorrowSales;
-    let thisWeekSales = 0;
-    const today = new Date();
-    const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
-    let row = 0;
-    let hoursCol = 0;
-    if (salesArr === undefined) {
-        console.log(`In getPrepHours; salesArr is undefined`);
-        todayPrepHours = 8;
-    }
-    else {
-        for (let i = 0; i < salesArr[0].length; i++) {
-            if (String(salesArr[0][i]) === 'Prep Hours') {
-                hoursCol = i;
-            }
-        }
-        while (String(salesArr[row][0]) !== todayStr && row < salesArr.length) {
-            row++;
-        }
-        console.log(`Todays date of ${todayStr} found at row ${row + 1} with value ${salesArr[row][hoursCol]} hours`);
-        if (locationStr) {
-            todayPrepHours = Number(salesArr[row][hoursCol]);
-        }
-        else {
-            console.log('Error in getSpreadsheetData with prep hours; default to 8');
-            todayPrepHours = 8;
-        }
-    }
-    row = 0;
-    let salesCol = 0;
-    if (salesArr === undefined) {
-        console.log(`In getTomorrowSales; salesArr is undefined`);
-        tomorrowSales = 0;
-    }
-    else {
-        for (let i = 0; i < salesArr[0].length; i++) {
-            if (String(salesArr[0][i]) === 'Historical Sales') {
-                salesCol = i;
-            }
-        }
-        while (salesArr[row][0] !== todayStr && row < salesArr.length) {
-            row++;
-        }
-        console.log(`Tomorrows date of ${salesArr[row + 1][0]} found at row ${row + 2} with value ${salesArr[row + 1][salesCol]} sales`);
-        if (locationStr) {
-            tomorrowSales = Number(salesArr[row + 1][salesCol]);
-        }
-        else {
-            console.log('OH NOoOoO -yours truly, getTomorrowSales');
-            tomorrowSales = 0;
-        }
-    }
-    row = 0;
-    salesCol = 0;
-    if (salesArr === undefined) {
-        console.log(`In getThisWeekSales; salesArr is undefined`);
-        thisWeekSales = 0;
-    }
-    else {
-        for (let i = 0; i < salesArr[0].length; i++) {
-            if (String(salesArr[0][i]) === 'Historical Sales') {
-                salesCol = i;
-            }
-        }
-        while (String(salesArr[row][0]) !== todayStr && row < salesArr.length) {
-            row++;
-        }
-        for (let i = 1; i <= 7; i++) {
-            thisWeekSales += Number(salesArr[row + i][salesCol]);
-        }
-        console.log(`Todays date of ${todayStr} found at row ${row + 1} with value ${salesArr[row][salesCol]} sales`);
-        console.log(`This week's sales calcualted to be ${thisWeekSales}`);
-        if (!locationStr) {
-            console.log('OH NOoOoO -yours truly, getTomorrowSales');
-            thisWeekSales = 0;
-        }
-    }
-    return [getJsonStringFromItemArr(itemArr), getJsonStringFromSalesArr(salesArr), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
-}
-//# sourceMappingURL=index.js.map
+//# sourceMappingURL=app.js.map
