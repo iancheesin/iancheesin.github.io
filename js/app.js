@@ -217,7 +217,7 @@ function calcNeededThisWeek(item, thisWeekSales, tomorrowSales, currentInventory
 function checkPriorityLevel(item, thisWeekSales, tomorrowSales, currentInventory) {
     const neededTomorrow = calcNeededTomorrow(item, tomorrowSales, currentInventory);
     const neededThisWeek = calcNeededThisWeek(item, thisWeekSales, tomorrowSales, currentInventory);
-    if (neededTomorrow <= 0) {
+    if (neededTomorrow < 0 || neededTomorrow === 0) {
         if (neededThisWeek > 0) {
             return 1;
         }
@@ -362,19 +362,18 @@ function makePrepList() {
     const inventoryCookie = getCookie('inventory');
     const currentInventory = parseCookie(inventoryCookie, 'inventory');
     arrayOfItems.forEach((Item) => {
+        const newPrepItem = new PrepItem(Item.itemName, Item.batchUnitName, Item.batchTimeMinutes, calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)) {
-            case 2: {
-                const newPrepItem = new PrepItem(Item.itemName, Item.batchUnitName, Item.batchTimeMinutes, calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
+            case 2:
                 highPriority.push(newPrepItem);
                 break;
-            }
-            case 1: {
-                const newPrepItem = new PrepItem(Item.itemName, Item.batchUnitName, Item.batchTimeMinutes, calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
+            case 1:
                 lowPriority.push(newPrepItem);
                 break;
-            }
             case 0:
-                const newPrepItem = new PrepItem(Item.itemName, Item.batchUnitName, Item.batchTimeMinutes, calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
+                dontPrep.push(newPrepItem);
+                break;
+            default:
                 dontPrep.push(newPrepItem);
                 break;
         }
@@ -424,6 +423,7 @@ function makePrepList() {
                     const ingredientIndexHp = lowPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1) {
                         let ingredientItem = highPriority.splice(ingredientIndexHp, 1)[0];
+                        console.log(`Adding ingredient to high priority list: ${ingredient}`);
                         highPriority.push(ingredientItem);
                     }
                     else {
@@ -650,7 +650,6 @@ function onSubmitInventory() {
 }
 function getItems(locationStr = '') {
     let itemArrStr = getCookie('itemArr');
-    console.log(`Item array cookie: ${getCookie('itemArr')}`);
     if (false) {
         console.log(locationStr);
     }

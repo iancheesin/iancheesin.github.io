@@ -267,10 +267,11 @@ function calcNeededThisWeek (item: Item, thisWeekSales: number, tomorrowSales:nu
     return neededThisWeek;
 }
 
+//A priority level of 0 means not needed, 1 means needed this week but not ASAP, 2 means needed ASAP
 function checkPriorityLevel (item: Item, thisWeekSales: number, tomorrowSales: number, currentInventory: { [id: string]: number }): number/*returns a prority level of 0 (does not need to be prepped at all), 1 (could be prepped for the week), or 2 (needs to be prepped for tomorrow)*/{
     const neededTomorrow: number = calcNeededTomorrow(item, tomorrowSales, currentInventory);
     const neededThisWeek: number = calcNeededThisWeek(item, thisWeekSales, tomorrowSales, currentInventory);
-    if (neededTomorrow <= 0) {
+    if (neededTomorrow < 0 || neededTomorrow === 0) {
         if (neededThisWeek > 0){
             return 1;
         }
@@ -421,22 +422,21 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     const inventoryCookie = getCookie('inventory');
     const currentInventory: { [id: string]: number } = parseCookie(inventoryCookie,'inventory');
     arrayOfItems.forEach((Item) => {
+        const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);    
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)){
-            case 2: {
-                const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
+            case 2:
                 highPriority.push(newPrepItem);
                 break;
-            }
-            case 1: {
-                const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
+            case 1:
                 lowPriority.push(newPrepItem);
                 break;
-            }
             case 0:
-                
-                const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
                 dontPrep.push(newPrepItem);
                 break;
+            default:
+                dontPrep.push(newPrepItem);
+                break;
+
         }
     })
     //adjust ingredient priority here
@@ -472,13 +472,14 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
             }else{}
         }else{}
     })
-    highPriority.forEach((PrepItem) => {
+    highPriority.forEach((PrepItem) => { //check if the high priority items have ingredients that need making... may need fixing
         if (PrepItem.finishedItemBool !== undefined){
             if (PrepItem.ingredients !== undefined){
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = lowPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1){
                         let ingredientItem = highPriority.splice(ingredientIndexHp, 1)[0];
+                        console.log(`Adding ingredient to high priority list: ${ingredient}`);
                         highPriority.push(ingredientItem);
                     }else{
                         let ingredientIndexLp = dontPrep.findIndex(obj => obj.itemName === ingredient);
@@ -495,7 +496,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
         if(PrepItem !== undefined) {
             highPriorityPrepTime += PrepItem.totalBatchTime;
         }
-    }) 
+    });
 
     let remainingPrepTime = prepMinutes - highPriorityPrepTime;
     highPriority.sort((a, b) => b.totalBatchTime - a.totalBatchTime); //sort highPriority by totalBatchTime in descending order
@@ -729,7 +730,6 @@ function onSubmitInventory(){
 
 function getItems(locationStr: string = ''): Item[] {
     let itemArrStr = getCookie('itemArr');
-    console.log(`Item array cookie: ${getCookie('itemArr')}`);
     if(false) { console.log(locationStr); }
     if(itemArrStr === undefined) {
         return JSON.parse('error');
