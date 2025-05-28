@@ -164,3 +164,56 @@ form{
     box-shadow: 0px 5px #F17124;
   }
 }
+
+/* HTML: <div class="loader"></div> */
+.loader {
+  margin: auto;
+  padding: 10px;
+  height: 80px;
+  aspect-ratio: 1;
+  padding: 10px;
+  border-radius: 50%;
+  box-sizing: border-box;
+  position: relative;
+  mask: conic-gradient(#000 0 0) content-box exclude,conic-gradient(#000 0 0);
+  filter: blur(12px);
+}
+.loader:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(#0000 35%,#F17124,#0000 65%);
+  animation: l1 1.5s linear infinite;
+}
+@keyframes l1 {
+  to {rotate: 1turn}
+}
+
+/* HTML: <div class="loader"></div>
+.loader {
+  margin: auto;
+  padding: 10px;
+  width: 40px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(farthest-side,#ED303C 94%,#0000),
+    radial-gradient(farthest-side,#3B8183 94%,#0000),
+    radial-gradient(farthest-side,#FAD089 94%,#0000),
+    radial-gradient(farthest-side,#FF9C5B 94%,#0000),
+    #ED303C;
+  background-size: 105% 105%;
+  background-repeat: no-repeat;
+  animation: l5 2s infinite; 
+}
+@keyframes l5 {
+  0%  {background-position: 50% -50px,-40px 50%, 50% calc(100% + 50px),calc(100% + 50px) 50%}
+  20%,
+  25% {background-position: 50% -50px,-50px 50%, 50% calc(100% + 50px),50% 50%}
+  45%,
+  50% {background-position: 50% -50px,-50px 50%, 50% 50%              ,50% 50%}
+  75%,
+  75% {background-position: 50% -50px, 50%  50%, 50% 50%              ,50% 50%}
+  95%,
+  100%{background-position: 50%  50% , 50%  50%, 50% 50%              ,50% 50%}
+} */
