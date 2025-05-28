@@ -1,3 +1,4 @@
+import firebase from "firebase/compat/app";
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -750,7 +751,7 @@ async function getFirebaseData(locationStr = '') {
     let tomorrowSales;
     let thisWeekSales = 0;
     const today = new Date();
-    const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    const todayStr = `${(today.getMonth() + 1 < 10) ? '0' : ''}${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
     let row = 0;
     if (salesArr === undefined) {
         console.log(`In getPrepHours; salesArr is undefined`);
@@ -758,7 +759,6 @@ async function getFirebaseData(locationStr = '') {
     }
     else {
         while (String(salesArr[row]['Date']) !== todayStr && row < salesArr.length) {
-            console.log(`Row ${row} has date ${salesArr[row]['Date']} which equals ${todayStr} ? ${String(salesArr[row]['Date']).trim() != String(todayStr).trim()}`);
             row++;
         }
         console.log(`Todays date of ${todayStr} found at row ${row + 1} with value ${salesArr[row]['Prep Hours']} hours`);
@@ -817,7 +817,7 @@ function getSpreadsheetData(locationStr = '') {
     let tomorrowSales;
     let thisWeekSales = 0;
     const today = new Date();
-    const todayStr = `${(today.getMonth() + 1 < 10) ? '0' : ''}${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
+    const todayStr = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
     let row = 0;
     let hoursCol = 0;
     if (salesArr === undefined) {
