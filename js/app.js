@@ -1,10 +1,3 @@
-// import { initializeApp } from "./firebase/app";
-// import { database } from "./firebase/database";
-
-// import firebase from "firebase/compat/app";
-// import 'firebase/compat/auth';
-// import "firebase/compat/database";
-// import 'firebase/compat/firestore';
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -532,13 +525,42 @@ function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, low
         }
     });
 }
-function onSubmitUserInfo() {
-    
-    // var app = firebase.initializeApp(firebaseConfig);
-    var database = firebase.database();
+async function getItemJson(location = 'Norcross') {
+    let dbRef = firebase.database().ref();
+    let jsonStrItems = '';
+    await dbRef.child('Item Lists').child(location).get().then((snapshot) => {
+        if (snapshot.exists()) {
+            console.log(JSON.stringify(snapshot.val()));
+            jsonStrItems = JSON.stringify(snapshot.val());
+        }
+        else {
+            console.log('No data available');
+        }
+    }).catch((error) => {
+        console.log(error);
+    });
+    return jsonStrItems;
+}
+async function getSalesHoursJson(location = 'Norcross') {
+    let dbRef = firebase.database().ref();
+    let jsonStrItems = '';
+    await dbRef.child('Sales and Hours').child(location).get().then((snapshot) => {
+        if (snapshot.exists()) {
+            console.log(JSON.stringify(snapshot.val()));
+            jsonStrItems = JSON.stringify(snapshot.val());
+        }
+        else {
+            console.log('No data available');
+        }
+    }).catch((error) => {
+        console.log(error);
+    });
+    return jsonStrItems;
+}
+async function onSubmitUserInfo() {
     const form = document.getElementById('userInfoForm');
     if (form) {
-        form.addEventListener('submit', (event) => {
+        await form.addEventListener('submit', async (event) => {
             event.preventDefault();
             if (form.nameInput.value) {
                 setUserInfoCookie(form);
@@ -555,8 +577,9 @@ function onSubmitUserInfo() {
                 if (body !== null) {
                     body.innerHTML = `<p id="loading">Loading...</p>`;
                 }
-                console.log(`database:`);
-                console.log(database);
+                await console.log(getFirebaseData(getCookie('location')));
+                await console.log(getItemJson(getCookie('location')));
+                await console.log(getSalesHoursJson(getCookie('location')));
                 google.script.run.withSuccessHandler(function (dataString) {
                     setSpreadsheetDataCookies(dataString);
                     if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
@@ -720,6 +743,71 @@ function getJsonStringFromSalesArr(data) {
     }
     console.log(result);
     return JSON.stringify(result);
+}
+async function getFirebaseData(locationStr = '') {
+    const salesArr = JSON.parse(await getSalesHoursJson());
+    let todayPrepHours;
+    let tomorrowSales;
+    let thisWeekSales = 0;
+    const today = new Date();
+    const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    let row = 0;
+    if (salesArr === undefined) {
+        console.log(`In getPrepHours; salesArr is undefined`);
+        todayPrepHours = 8;
+    }
+    else {
+        while (String(salesArr[row]['Date']) !== todayStr && row < salesArr.length) {
+            console.log(`Row ${row} has date ${salesArr[row]['Date']} which equals ${todayStr} ? ${String(salesArr[row]['Date']).trim() != String(todayStr).trim()}`);
+            row++;
+        }
+        console.log(`Todays date of ${todayStr} found at row ${row + 1} with value ${salesArr[row]['Prep Hours']} hours`);
+        if (locationStr) {
+            todayPrepHours = Number(salesArr[row]['Prep Hours']);
+        }
+        else {
+            console.log('Error in getSpreadsheetData with prep hours; default to 8');
+            todayPrepHours = 8;
+        }
+    }
+    row = 0;
+    if (salesArr === undefined) {
+        console.log(`In getTomorrowSales; salesArr is undefined`);
+        tomorrowSales = 0;
+    }
+    else {
+        while (String(salesArr[row]['Date']) !== todayStr && row < salesArr.length) {
+            row++;
+        }
+        console.log(`Todays date of ${todayStr} found at row ${row + 1} with value ${salesArr[row]['Historical Sales']} hours`);
+        if (locationStr) {
+            tomorrowSales = Number(salesArr[row]['Historical Sales']);
+        }
+        else {
+            console.log('Error in getSpreadsheetData with tomorrow sales; default to 5000');
+            tomorrowSales = 5000;
+        }
+    }
+    row = 0;
+    if (salesArr === undefined) {
+        console.log(`In getThisWeekSales; salesArr is undefined`);
+        thisWeekSales = 0;
+    }
+    else {
+        while (String(salesArr[row]['Date']) !== todayStr && row < salesArr.length) {
+            row++;
+        }
+        for (let i = 1; i <= 7; i++) {
+            thisWeekSales += Number(salesArr[row + i]['Historical Sales']);
+        }
+        console.log(`Todays date of ${todayStr} found at row ${row + 1} with value ${salesArr[row]['Historical Sales']} sales`);
+        console.log(`This week's sales calcualted to be ${thisWeekSales}`);
+        if (!locationStr) {
+            console.log('Error in getSpreadsheetData with tomorrow sales; default to 7000');
+            thisWeekSales = 7000;
+        }
+    }
+    return [await getSalesHoursJson(), await getItemJson(), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
 }
 function getSpreadsheetData(locationStr = '') {
     var _a, _b, _c;
