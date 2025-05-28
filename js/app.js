@@ -566,10 +566,14 @@ async function getSalesHoursJson(location = 'Norcross') {
 }
 async function onSubmitUserInfo() {
     const form = document.getElementById('userInfoForm');
+    let body = document.getElementById('body');
     if (form) {
         await form.addEventListener('submit', async (event) => {
             event.preventDefault();
             if (form.nameInput.value) {
+                if (body !== null) {
+                    body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
+                }
                 setUserInfoCookie(form);
                 const hPF = getCookie('hPF');
                 const hPU = getCookie('hPU');
@@ -580,11 +584,7 @@ async function onSubmitUserInfo() {
                 const lowPrioritySelected = parseCookie(lPS, 'lPS');
                 const extraPrepList = parseCookie(ePL, 'ePL');
                 const inventoryCookie = getCookie('inventory');
-                let body = document.getElementById('body');
                 let dataString = await getFirebaseData(getCookie('location'));
-                if (body !== null) {
-                    body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
-                }
                 setSpreadsheetDataCookies(dataString);
                 if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
                     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);

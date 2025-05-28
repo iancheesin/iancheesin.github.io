@@ -640,11 +640,16 @@ async function getSalesHoursJson(location: string = 'Norcross'): Promise<string>
 }
 
 async function onSubmitUserInfo(){
+
     const form = document.getElementById('userInfoForm') as HTMLFormElement;
+    let body = document.getElementById('body');
     if(form){
         await form.addEventListener('submit', async (event) => {
             event.preventDefault();
             if (form.nameInput.value){
+                if (body !== null) {
+                    body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
+                }
                 setUserInfoCookie(form);
                 const hPF = getCookie('hPF');
                 const hPU = getCookie('hPU');
@@ -659,13 +664,9 @@ async function onSubmitUserInfo(){
                 const inventoryCookie = getCookie('inventory');
 
                 
-                let body = document.getElementById('body');
                 let dataString = await getFirebaseData(getCookie('location'));
                 // console.log(`Data string:`);
                 // console.log(dataString);
-                if (body !== null) {
-                    body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
-                }
                 // console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
                 // console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);
                 setSpreadsheetDataCookies(dataString);
