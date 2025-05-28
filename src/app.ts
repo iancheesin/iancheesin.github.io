@@ -152,7 +152,7 @@ async function inventoryForm (id: string){
 function makeHTMLPrepRows (prepList: PrepItem[], name: string, cookieName:string, completeHTML: string = ''){
     const progress: Record<string, number> = parseCookie(getCookie(cookieName),cookieName);
     prepList.forEach ((PrepItem) => {
-        const row: string = `<tr><td>${PrepItem.itemName}</td><td>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td>${PrepItem.totalBatchTime} min</td><td><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></td></tr>`;
+        const row: string = `<tr><td>${PrepItem.itemName}</td><td>${Math.ceil(PrepItem.prepTomorrow)}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td>${PrepItem.totalBatchTime} min</td><td><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></td></tr>`;
         completeHTML += row;
     })
     return completeHTML;
@@ -164,13 +164,13 @@ function makeHTMLPrepRowsStrong (prepList: PrepItem[], name: string, cookieName:
         console.log('the cookie exists!')
         const progress: Record<string, number> = parseCookie(getCookie(cookieName), cookieName);
         prepList.forEach ((PrepItem) => {
-            let row: string = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
+            let row: string = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${Math.ceil(PrepItem.prepTomorrow)}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
             completeHTML += row;
         })
     }else{
         console.log('the cookie doesnt exist!')
         prepList.forEach ((PrepItem) => {
-            let row: string = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="0"></strong></td></tr>`;
+            let row: string = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${Math.ceil(PrepItem.prepTomorrow)}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="0"></strong></td></tr>`;
             completeHTML += row;
         })
     }
@@ -184,9 +184,9 @@ function makeFinalPrepList (completeHTML: string){
                         <table id="finalPrepList" class="center">
                             <tr>
                                 <th>Item</th>
-                                <th>Prep Range</th>
-                                <th>Prep Time Max</th>
-                                <th>Prepped?</th>
+                                <th>What's needed</th>
+                                <th>Max time</th>
+                                <th>Amount made</th>
                             </tr>
                             ${completeHTML}
                         </table>
@@ -442,7 +442,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     //adjust ingredient priority here
     dontPrep.forEach((PrepItem) => {
         if (PrepItem.finishedItemBool !== undefined){
-            if(PrepItem.ingredients){
+            if(PrepItem.ingredients !== undefined){
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = highPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1){
@@ -461,7 +461,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     })
     lowPriority.forEach((PrepItem) => {
         if (PrepItem.finishedItemBool !== undefined){
-            if (PrepItem.ingredients){
+            if (PrepItem.ingredients !== undefined){
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = highPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1){
@@ -474,7 +474,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     })
     highPriority.forEach((PrepItem) => {
         if (PrepItem.finishedItemBool !== undefined){
-            if (PrepItem.ingredients){
+            if (PrepItem.ingredients !== undefined){
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = lowPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1){
@@ -492,7 +492,9 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
         }else{}
     });
     highPriority.forEach((PrepItem) => {
-        highPriorityPrepTime += PrepItem.totalBatchTime;
+        if(PrepItem !== undefined) {
+            highPriorityPrepTime += PrepItem.totalBatchTime;
+        }
     }) 
 
     let remainingPrepTime = prepMinutes - highPriorityPrepTime;
@@ -725,10 +727,10 @@ function onSubmitInventory(){
     }
 }
 
-function getItems(locationStr = ''): Item[] {
+function getItems(locationStr: string = ''): Item[] {
     let itemArrStr = getCookie('itemArr');
-    // console.log(`Item array cookie: ${getCookie('itemArr')}`);
-    console.log(locationStr);
+    console.log(`Item array cookie: ${getCookie('itemArr')}`);
+    if(false) { console.log(locationStr); }
     if(itemArrStr === undefined) {
         return JSON.parse('error');
     } else {
@@ -738,19 +740,19 @@ function getItems(locationStr = ''): Item[] {
 
 function getPrepHours(locationStr: string = ''): number{
     // console.log(getCookie('todayPrepHours'));
-    console.log(locationStr);
+    if(false) { console.log(locationStr); }
     return Number(getCookie('todayPrepHours'));
 }
 
 function getTomorrowSales(locationStr: string = ''): number{ // TODO: Check if null/undefined and throw error
     // console.log(getCookie('tomorrowSales'));
-    console.log(locationStr);
+    if(false) { console.log(locationStr); }
     return Number(getCookie('tomorrowSales'));
 }
 
 function getThisWeekSales(locationStr: string = ''): number{
     // console.log(getCookie('thisWeekSales'));
-    console.log(locationStr);
+    if(false) { console.log(locationStr); }
     return Number(getCookie('thisWeekSales'));
 }
 
@@ -891,7 +893,7 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
         while( String(salesArr[row]['Date']) !== todayStr && row < salesArr.length) {
             row++;
         }
-        console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row]['Prep Hours']} hours`);
+        console.log(`Todays date of ${todayStr} found at row ${row} with value ${salesArr[row]['Prep Hours']} hours`);
         if (locationStr){
             todayPrepHours = Number(salesArr[row]['Prep Hours']); 
         }else{
@@ -909,9 +911,10 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
         while( String(salesArr[row]['Date']) !== todayStr && row < salesArr.length) {
             row++;
         }
-        console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row]['Historical Sales']} hours`);
+        console.log(`Todays date of ${todayStr} found at row ${row} with value ${salesArr[row]['Historical Sales']} dollars`);
         if (locationStr){
-            tomorrowSales = Number(salesArr[row]['Historical Sales']); 
+            tomorrowSales = Number(salesArr[row]['Historical Sales'])+Number(salesArr[row+1]['Historical Sales']); 
+            console.log(`Today and tomorrow sales calculated to be ${tomorrowSales}`);
         }else{
             console.log('Error in getSpreadsheetData with tomorrow sales; default to 5000');
             tomorrowSales = 5000;
@@ -932,8 +935,7 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
             thisWeekSales += Number(salesArr[row+i]['Historical Sales']);
             thisWeekSalesArr[i-1] = salesArr[row+i];
         }
-        console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row]['Historical Sales']} sales`);
-        console.log(`This week's sales calcualted to be ${thisWeekSales}`);
+        console.log(`This week's sales calculated to be ${thisWeekSales}`);
         if (!locationStr){
             console.log('Error in getSpreadsheetData with tomorrow sales; default to 7000');
             thisWeekSales = 7000;
