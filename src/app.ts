@@ -160,11 +160,21 @@ function makeHTMLPrepRows (prepList: PrepItem[], name: string, cookieName:string
 
 //TODO: As of 5/24 error with this functino and the progress array/cookie: It seems like the cookie is never created
 function makeHTMLPrepRowsStrong (prepList: PrepItem[], name: string, cookieName:string, completeHTML: string = ''){
-    const progress: Record<string, number> = parseCookie(getCookie(cookieName), cookieName);
-    prepList.forEach ((PrepItem) => {
-        let row: string = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
-        completeHTML += row;
-    })
+    if (getCookie(cookieName) !== undefined){
+        console.log('the cookie exists!')
+        const progress: Record<string, number> = parseCookie(getCookie(cookieName), cookieName);
+        prepList.forEach ((PrepItem) => {
+            let row: string = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
+            completeHTML += row;
+        })
+    }else{
+        console.log('the cookie doesnt exist!')
+        prepList.forEach ((PrepItem) => {
+            let row: string = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="0"></strong></td></tr>`;
+            completeHTML += row;
+        })
+    }
+    
     return completeHTML;
 }
 
@@ -423,6 +433,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
                 break;
             }
             case 0:
+                
                 const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
                 dontPrep.push(newPrepItem);
                 break;
@@ -430,8 +441,8 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     })
     //adjust ingredient priority here
     dontPrep.forEach((PrepItem) => {
-        if (PrepItem.finishedItemBool){
-            if (PrepItem.ingredients[0]){
+        if (PrepItem.finishedItemBool !== undefined){
+            if(PrepItem.ingredients){
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = highPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1){
@@ -445,12 +456,12 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
                         }else{}
                     }
                 }) 
-            }else{}
+            }
         }else{}
     })
     lowPriority.forEach((PrepItem) => {
-        if (PrepItem.finishedItemBool){
-            if (PrepItem.ingredients[0]){
+        if (PrepItem.finishedItemBool !== undefined){
+            if (PrepItem.ingredients){
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = highPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1){
@@ -462,8 +473,8 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
         }else{}
     })
     highPriority.forEach((PrepItem) => {
-        if (PrepItem.finishedItemBool){
-            if (PrepItem.ingredients[0]){
+        if (PrepItem.finishedItemBool !== undefined){
+            if (PrepItem.ingredients){
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = lowPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1){

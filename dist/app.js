@@ -110,11 +110,21 @@ function makeHTMLPrepRows(prepList, name, cookieName, completeHTML = '') {
     return completeHTML;
 }
 function makeHTMLPrepRowsStrong(prepList, name, cookieName, completeHTML = '') {
-    const progress = parseCookie(getCookie(cookieName), cookieName);
-    prepList.forEach((PrepItem) => {
-        let row = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
-        completeHTML += row;
-    });
+    if (getCookie(cookieName) !== undefined) {
+        console.log('the cookie exists!');
+        const progress = parseCookie(getCookie(cookieName), cookieName);
+        prepList.forEach((PrepItem) => {
+            let row = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
+            completeHTML += row;
+        });
+    }
+    else {
+        console.log('the cookie doesnt exist!');
+        prepList.forEach((PrepItem) => {
+            let row = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="0"></strong></td></tr>`;
+            completeHTML += row;
+        });
+    }
     return completeHTML;
 }
 function makeFinalPrepList(completeHTML) {
@@ -370,8 +380,8 @@ function makePrepList() {
         }
     });
     dontPrep.forEach((PrepItem) => {
-        if (PrepItem.finishedItemBool) {
-            if (PrepItem.ingredients[0]) {
+        if (PrepItem.finishedItemBool !== undefined) {
+            if (PrepItem.ingredients) {
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = highPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1) {
@@ -388,13 +398,12 @@ function makePrepList() {
                     }
                 });
             }
-            else { }
         }
         else { }
     });
     lowPriority.forEach((PrepItem) => {
-        if (PrepItem.finishedItemBool) {
-            if (PrepItem.ingredients[0]) {
+        if (PrepItem.finishedItemBool !== undefined) {
+            if (PrepItem.ingredients) {
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = highPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1) {
@@ -409,8 +418,8 @@ function makePrepList() {
         else { }
     });
     highPriority.forEach((PrepItem) => {
-        if (PrepItem.finishedItemBool) {
-            if (PrepItem.ingredients[0]) {
+        if (PrepItem.finishedItemBool !== undefined) {
+            if (PrepItem.ingredients) {
                 PrepItem.ingredients.forEach((ingredient) => {
                     const ingredientIndexHp = lowPriority.findIndex(obj => obj.itemName === ingredient);
                     if (ingredientIndexHp > -1) {
