@@ -658,7 +658,7 @@ async function onSubmitUserInfo(){
                 // console.log(`Data string:`);
                 // console.log(dataString);
                 if (body !== null) {
-                    body.innerHTML = `<p id="loading">Loading...</p>`;
+                    body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
                 }
                 // console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
                 // console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);

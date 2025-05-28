@@ -574,7 +574,7 @@ async function onSubmitUserInfo() {
                 let body = document.getElementById('body');
                 let dataString = await getFirebaseData(getCookie('location'));
                 if (body !== null) {
-                    body.innerHTML = `<p id="loading">Loading...</p>`;
+                    body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
                 }
                 setSpreadsheetDataCookies(dataString);
                 if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
