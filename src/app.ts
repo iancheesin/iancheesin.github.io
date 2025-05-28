@@ -864,7 +864,7 @@ function onLoad(){
 
 async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
     const salesArr: SalesHoursObj[] | undefined = JSON.parse(await getSalesHoursJson());
-    // const itemArr: object[][] | undefined = JSON.parse(await getItemJson());
+    let thisWeekSalesArr: SalesHoursObj[] = [];
     let todayPrepHours: number;
     let tomorrowSales: number;
     let thisWeekSales: number = 0;
@@ -923,6 +923,7 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
         }
         for(let i = 1; i <= 7; i++) {
             thisWeekSales += Number(salesArr[row+i]['Historical Sales']);
+            thisWeekSalesArr[i-1] = salesArr[row+i];
         }
         console.log(`Todays date of ${todayStr} found at row ${row+1} with value ${salesArr[row]['Historical Sales']} sales`);
         console.log(`This week's sales calcualted to be ${thisWeekSales}`);
@@ -932,7 +933,7 @@ async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
         }
     }
 
-    return [await getSalesHoursJson(), await getItemJson(), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
+    return [JSON.stringify(thisWeekSalesArr), await getItemJson(), JSON.stringify(todayPrepHours), JSON.stringify(tomorrowSales), JSON.stringify(thisWeekSales),];
 
 }
 
