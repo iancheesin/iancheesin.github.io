@@ -64,11 +64,11 @@ function getCookie(name:string){
     return cookieInfo;
 }
 
-function parseCookie(cookie: string | undefined){
+function parseCookie(cookie: string | undefined, cookieName: string){
     if (cookie){
         return JSON.parse(cookie);
     }else{
-        console.log(`oh no, we didn't find that cookie! For cookie name ${cookie}`);
+        console.log(`oh no, we didn't find that cookie! For cookie name ${cookieName}`);
     }
 }
 
@@ -104,11 +104,6 @@ function setPrepListCookie(prepList: PrepItem[], name:string){
     //2. create a new cookie
     document.cookie = `${name}=${JSON.stringify(prepList)};expires=${midnight()};Partitioned;SameSite=none; secure`;
 }
-
-// function getItems(): Item[]{
-//     const jsonStrItems = '[ { "itemName": "Vermonter", "batchUnitName": "Full pan", "finishedItemBool": true, "batchesPerSaleDollar": "0.0005970", "batchSize": "1", "batchTimeMinutes": "11", "ingredients": [] }, { "itemName": "Baconator", "batchUnitName": "Full pan", "finishedItemBool": true, "batchesPerSaleDollar": "0.0004707", "batchSize": "1", "batchTimeMinutes": "15", "ingredients": ["Bacon"] }, { "itemName": "Godmother", "batchUnitName": "Full pan", "finishedItemBool": true, "batchesPerSaleDollar": "0.0003776", "batchSize": "1", "batchTimeMinutes": "21", "ingredients": ["Sliced Tomatoes","Pesto"] }, { "itemName": "Blue Buffalo", "batchUnitName": "Full pan", "finishedItemBool": true, "batchesPerSaleDollar": "0.0001995", "batchSize": "1", "batchTimeMinutes": "19", "ingredients": ["Buffalo Chicken Salad"] }, { "itemName": "Special", "batchUnitName": "Full pan", "finishedItemBool": true, "batchesPerSaleDollar": "0.0000750", "batchSize": "1", "batchTimeMinutes": "21", "ingredients": [""] }, { "itemName": "Chocolate Chip Cookies", "batchUnitName": "Each", "finishedItemBool": true, "batchesPerSaleDollar": "0.001587", "batchSize": "40", "batchTimeMinutes": "1", "ingredients": [] }, { "itemName": "Bacon", "batchUnitName": "Full pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.0001046", "batchSize": "1.5", "batchTimeMinutes": "27", "ingredients": [] }, { "itemName": "Buffalo Chicken Salad", "batchUnitName": "Third pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.0001330", "batchSize": "2", "batchTimeMinutes": "15", "ingredients": [] }, { "itemName": "Fiesta Elote Filling", "batchUnitName": "Third pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.0001330", "batchSize": "2", "batchTimeMinutes": "15", "ingredients": [] }, { "itemName": "Baked Potatoes", "batchUnitName": "Third pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.0000630", "batchSize": "2", "batchTimeMinutes": "20", "ingredients": [] }, { "itemName": "Cajun Caesar Dressing", "batchUnitName": "Sixth pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.00007982", "batchSize": "1", "batchTimeMinutes": "12", "ingredients": [] }, { "itemName": "Lemon Pepper Chicken", "batchUnitName": "Third pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.00007982", "batchSize": "1", "batchTimeMinutes": "26", "ingredients": [] }, { "itemName": "Croutons", "batchUnitName": "Third pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.00002982", "batchSize": "2", "batchTimeMinutes": "7.5", "ingredients": [] }, { "itemName": "Maple Lemon Balsamic Dressing", "batchUnitName": "Bottle", "finishedItemBool": false, "batchesPerSaleDollar": "0.00007982", "batchSize": "1", "batchTimeMinutes": "10.5", "ingredients": [] },  { "itemName": "Pesto", "batchUnitName": "Sixth pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.0001888", "batchSize": "5", "batchTimeMinutes": "21", "ingredients": [] }, { "itemName": "Chive Cream Cheese", "batchUnitName": "Sixth pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.0001888", "batchSize": "2", "batchTimeMinutes": "21", "ingredients": [] }, { "itemName": "Secret Sauce", "batchUnitName": "Bottle", "finishedItemBool": false, "batchesPerSaleDollar": "0.006140", "batchSize": "5", "batchTimeMinutes": "2.2", "ingredients": [] }, { "itemName": "Sliced Tomatoes", "batchUnitName": "Third pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.0001510", "batchSize": "2", "batchTimeMinutes": "15", "ingredients": [] }, { "itemName": "Tomato Soup", "batchUnitName": "Third pan", "finishedItemBool": false, "batchesPerSaleDollar": "0.00007953", "batchSize": "4", "batchTimeMinutes": "7.75", "ingredients": [] } ]' ;
-//     return JSON.parse(jsonStrItems);
-// }
 
 function getLocations(): string[]{
     const jsonStrLocations = '[ "Norcross", "Settlers Green", "The Commissary", "Portland", "Portsmouth", "Hub Hall", "Big Cheddah", "Monterey Jack", "Pepper Jack" ]';
@@ -155,7 +150,7 @@ async function inventoryForm (id: string){
 }
 
 function makeHTMLPrepRows (prepList: PrepItem[], name: string, cookieName:string, completeHTML: string = ''){
-    const progress: Record<string, number> = parseCookie(getCookie(cookieName));
+    const progress: Record<string, number> = parseCookie(getCookie(cookieName),cookieName);
     prepList.forEach ((PrepItem) => {
         const row: string = `<tr><td>${PrepItem.itemName}</td><td>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td>${PrepItem.totalBatchTime} min</td><td><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></td></tr>`;
         completeHTML += row;
@@ -165,7 +160,7 @@ function makeHTMLPrepRows (prepList: PrepItem[], name: string, cookieName:string
 
 //TODO: As of 5/24 error with this functino and the progress array/cookie: It seems like the cookie is never created
 function makeHTMLPrepRowsStrong (prepList: PrepItem[], name: string, cookieName:string, completeHTML: string = ''){
-    const progress: Record<string, number> = parseCookie(getCookie(cookieName));
+    const progress: Record<string, number> = parseCookie(getCookie(cookieName), cookieName);
     prepList.forEach ((PrepItem) => {
         let row: string = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
         completeHTML += row;
@@ -414,7 +409,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     // const thisWeekSales = getThisWeekSales();
     // const tomorrowSales = getTomorrowSales(getCookie('location'));
     const inventoryCookie = getCookie('inventory');
-    const currentInventory: { [id: string]: number } = parseCookie(inventoryCookie);
+    const currentInventory: { [id: string]: number } = parseCookie(inventoryCookie,'inventory');
     arrayOfItems.forEach((Item) => {
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)){
             case 2: {
@@ -645,10 +640,10 @@ async function onSubmitUserInfo(){
                 const lPS = getCookie('lPS');
                 const ePL = getCookie('ePL');
 
-                const highPriorityFinished = parseCookie(hPF);
-                const highPriorityUnfinished = parseCookie(hPU);
-                const lowPrioritySelected = parseCookie(lPS);
-                const extraPrepList = parseCookie(ePL);
+                const highPriorityFinished = parseCookie(hPF,'hPF');
+                const highPriorityUnfinished = parseCookie(hPU,'hPU');
+                const lowPrioritySelected = parseCookie(lPS,'lPS');
+                const extraPrepList = parseCookie(ePL,'ePL');
 
                 const inventoryCookie = getCookie('inventory');
 

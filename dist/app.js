@@ -1,3 +1,4 @@
+import firebase from "firebase/compat/app";
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -31,12 +32,12 @@ function getCookie(name) {
         .find((row) => row.startsWith(`${name}=`))) === null || _a === void 0 ? void 0 : _a.split("=")[1];
     return cookieInfo;
 }
-function parseCookie(cookie) {
+function parseCookie(cookie, cookieName) {
     if (cookie) {
         return JSON.parse(cookie);
     }
     else {
-        console.log(`oh no, we didn't find that cookie! For cookie name ${cookie}`);
+        console.log(`oh no, we didn't find that cookie! For cookie name ${cookieName}`);
     }
 }
 function midnight() {
@@ -101,7 +102,7 @@ async function inventoryForm(id) {
     }
 }
 function makeHTMLPrepRows(prepList, name, cookieName, completeHTML = '') {
-    const progress = parseCookie(getCookie(cookieName));
+    const progress = parseCookie(getCookie(cookieName), cookieName);
     prepList.forEach((PrepItem) => {
         const row = `<tr><td>${PrepItem.itemName}</td><td>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td>${PrepItem.totalBatchTime} min</td><td><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></td></tr>`;
         completeHTML += row;
@@ -109,7 +110,7 @@ function makeHTMLPrepRows(prepList, name, cookieName, completeHTML = '') {
     return completeHTML;
 }
 function makeHTMLPrepRowsStrong(prepList, name, cookieName, completeHTML = '') {
-    const progress = parseCookie(getCookie(cookieName));
+    const progress = parseCookie(getCookie(cookieName), cookieName);
     prepList.forEach((PrepItem) => {
         let row = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
         completeHTML += row;
@@ -349,7 +350,7 @@ function makePrepList() {
     let thisWeekSales = getThisWeekSales();
     let tomorrowSales = getTomorrowSales();
     const inventoryCookie = getCookie('inventory');
-    const currentInventory = parseCookie(inventoryCookie);
+    const currentInventory = parseCookie(inventoryCookie, 'inventory');
     arrayOfItems.forEach((Item) => {
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)) {
             case 2: {
@@ -545,8 +546,8 @@ async function getSalesHoursJson(location = 'Norcross') {
     let jsonStrItems = '';
     await dbRef.child('Sales and Hours').child(location).get().then((snapshot) => {
         if (snapshot.exists()) {
-            // console.log(`Sales & Hours JSON in getSalesHoursJson:`);
-            // console.log(JSON.stringify(snapshot.val()));
+            console.log(`Sales & Hours JSON in getSalesHoursJson:`);
+            console.log(JSON.stringify(snapshot.val()));
             jsonStrItems = JSON.stringify(snapshot.val());
         }
         else {
@@ -568,20 +569,20 @@ async function onSubmitUserInfo() {
                 const hPU = getCookie('hPU');
                 const lPS = getCookie('lPS');
                 const ePL = getCookie('ePL');
-                const highPriorityFinished = parseCookie(hPF);
-                const highPriorityUnfinished = parseCookie(hPU);
-                const lowPrioritySelected = parseCookie(lPS);
-                const extraPrepList = parseCookie(ePL);
+                const highPriorityFinished = parseCookie(hPF, 'hPF');
+                const highPriorityUnfinished = parseCookie(hPU, 'hPU');
+                const lowPrioritySelected = parseCookie(lPS, 'lPS');
+                const extraPrepList = parseCookie(ePL, 'ePL');
                 const inventoryCookie = getCookie('inventory');
                 let body = document.getElementById('body');
                 let dataString = await getFirebaseData(getCookie('location'));
-                // console.log(`Data string:`);
-                // console.log(dataString);
+                console.log(`Data string:`);
+                console.log(dataString);
                 if (body !== null) {
                     body.innerHTML = `<p id="loading">Loading...</p>`;
                 }
-                // console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
-                // console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);
+                console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
+                console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);
                 setSpreadsheetDataCookies(dataString);
                 if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
                     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
@@ -644,8 +645,8 @@ function onSubmitInventory() {
 }
 function getItems(locationStr = '') {
     let itemArrStr = getCookie('itemArr');
-    // console.log(`Item array cookie: ${getCookie('itemArr')}`);
-    // console.log(locationStr);
+    console.log(`Item array cookie: ${getCookie('itemArr')}`);
+    console.log(locationStr);
     if (itemArrStr === undefined) {
         return JSON.parse('error');
     }
@@ -654,23 +655,23 @@ function getItems(locationStr = '') {
     }
 }
 function getPrepHours(locationStr = '') {
-    // console.log(getCookie('todayPrepHours'));
-    // console.log(locationStr);
+    console.log(getCookie('todayPrepHours'));
+    console.log(locationStr);
     return Number(getCookie('todayPrepHours'));
 }
 function getTomorrowSales(locationStr = '') {
-    // console.log(getCookie('tomorrowSales'));
-    // console.log(locationStr);
+    console.log(getCookie('tomorrowSales'));
+    console.log(locationStr);
     return Number(getCookie('tomorrowSales'));
 }
 function getThisWeekSales(locationStr = '') {
-    // console.log(getCookie('thisWeekSales'));
-    // console.log(locationStr);
+    console.log(getCookie('thisWeekSales'));
+    console.log(locationStr);
     return Number(getCookie('thisWeekSales'));
 }
 function setSpreadsheetDataCookies(data) {
-    // console.log("JSON string array passed to the cookie setter function:");
-    // console.log(data);
+    console.log("JSON string array passed to the cookie setter function:");
+    console.log(data);
     document.cookie = `salesHoursArr=;expires=Fri, 12 Jan 2018`;
     document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     document.cookie = `itemArr=;expires=Fri, 12 Jan 2018`;
