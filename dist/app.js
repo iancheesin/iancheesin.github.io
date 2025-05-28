@@ -1,3 +1,4 @@
+import firebase from "firebase/compat/app";
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -31,12 +32,12 @@ function getCookie(name) {
         .find((row) => row.startsWith(`${name}=`))) === null || _a === void 0 ? void 0 : _a.split("=")[1];
     return cookieInfo;
 }
-function parseCookie(cookie) {
+function parseCookie(cookie, cookieName) {
     if (cookie) {
         return JSON.parse(cookie);
     }
     else {
-        console.log(`oh no, we didn't find that cookie! For cookie name ${cookie}`);
+        console.log(`oh no, we didn't find that cookie! For cookie name ${cookieName}`);
     }
 }
 function midnight() {
@@ -101,7 +102,7 @@ async function inventoryForm(id) {
     }
 }
 function makeHTMLPrepRows(prepList, name, cookieName, completeHTML = '') {
-    const progress = parseCookie(getCookie(cookieName));
+    const progress = parseCookie(getCookie(cookieName), cookieName);
     prepList.forEach((PrepItem) => {
         const row = `<tr><td>${PrepItem.itemName}</td><td>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td>${PrepItem.totalBatchTime} min</td><td><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></td></tr>`;
         completeHTML += row;
@@ -109,7 +110,7 @@ function makeHTMLPrepRows(prepList, name, cookieName, completeHTML = '') {
     return completeHTML;
 }
 function makeHTMLPrepRowsStrong(prepList, name, cookieName, completeHTML = '') {
-    const progress = parseCookie(getCookie(cookieName));
+    const progress = parseCookie(getCookie(cookieName), cookieName);
     prepList.forEach((PrepItem) => {
         let row = `<tr><td><strong>${PrepItem.itemName}</strong></td><td><strong>${PrepItem.prepTomorrow}-${PrepItem.prepThisWeek} ${PrepItem.batchUnitName}s</strong></td><td><strong>${PrepItem.totalBatchTime} min<strong></td><td><strong><input class="${name}PrepListInput" type="number" id="${name}PrepList${PrepItem.itemName}" value="${progress[PrepItem.itemName]}"></strong></td></tr>`;
         completeHTML += row;
@@ -349,7 +350,7 @@ function makePrepList() {
     let thisWeekSales = getThisWeekSales();
     let tomorrowSales = getTomorrowSales();
     const inventoryCookie = getCookie('inventory');
-    const currentInventory = parseCookie(inventoryCookie);
+    const currentInventory = parseCookie(inventoryCookie, 'inventory');
     arrayOfItems.forEach((Item) => {
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)) {
             case 2: {
@@ -566,10 +567,10 @@ async function onSubmitUserInfo() {
                 const hPU = getCookie('hPU');
                 const lPS = getCookie('lPS');
                 const ePL = getCookie('ePL');
-                const highPriorityFinished = parseCookie(hPF);
-                const highPriorityUnfinished = parseCookie(hPU);
-                const lowPrioritySelected = parseCookie(lPS);
-                const extraPrepList = parseCookie(ePL);
+                const highPriorityFinished = parseCookie(hPF, 'hPF');
+                const highPriorityUnfinished = parseCookie(hPU, 'hPU');
+                const lowPrioritySelected = parseCookie(lPS, 'lPS');
+                const extraPrepList = parseCookie(ePL, 'ePL');
                 const inventoryCookie = getCookie('inventory');
                 let body = document.getElementById('body');
                 let dataString = await getFirebaseData(getCookie('location'));
