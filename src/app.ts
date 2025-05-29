@@ -202,7 +202,8 @@ function makeFinalPrepList (completeHTML: string){
 }
 
 function doneWithFinal(extraPrepList: PrepItem[]){
-    const finalPrepProgress = getCookie('finalPrepProgress');
+    const finalPrepProgressStr = getCookie('finalPrepProgress');
+    const finalPrepProgress = (finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
     const location = getCookie('location');
     const today = new Date();
     const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;

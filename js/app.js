@@ -1,3 +1,4 @@
+
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -149,7 +150,8 @@ function makeFinalPrepList(completeHTML) {
     }
 }
 function doneWithFinal(extraPrepList) {
-    const finalPrepProgress = getCookie('finalPrepProgress');
+    const finalPrepProgressStr = getCookie('finalPrepProgress');
+    const finalPrepProgress = (finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
     const location = getCookie('location');
     const today = new Date();
     const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
