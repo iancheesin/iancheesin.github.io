@@ -203,13 +203,15 @@ function makeFinalPrepList (completeHTML: string){
 
 function doneWithFinal(extraPrepList: PrepItem[]){
     const finalPrepProgressStr = getCookie('finalPrepProgress');
-    const finalPrepProgress = (finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
+    const finalPrepProgress = JSON.parse(finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
     const location = getCookie('location');
     const today = new Date();
     const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    const user = getCookie('userName');
     
     let dbRef = firebase.database().ref(`/Prep Record/${todayStr}/${location}`);
     dbRef.set(finalPrepProgress);
+    dbRef.update({'user': user});
     if (extraPrepList[0]){
         let completeHTML: string = "";
         extraPrepList.forEach ((PrepItem) => {
@@ -429,6 +431,15 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     // const tomorrowSales = getTomorrowSales(getCookie('location'));
     const inventoryCookie = getCookie('inventory');
     const currentInventory: { [id: string]: number } = parseCookie(inventoryCookie,'inventory');
+    //save prep list
+    const location = getCookie('location');
+    const user = getCookie('userName');
+    const now = new Date();
+    const nowStr = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+    const dbRef = firebase.database().ref(`/Inventory Record/${nowStr}/${location}`);
+    dbRef.set(currentInventory);
+    dbRef.update({'user': user});
+
     arrayOfItems.forEach((Item) => {
         const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)){

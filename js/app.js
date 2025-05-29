@@ -151,12 +151,14 @@ function makeFinalPrepList(completeHTML) {
 }
 function doneWithFinal(extraPrepList) {
     const finalPrepProgressStr = getCookie('finalPrepProgress');
-    const finalPrepProgress = (finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
+    const finalPrepProgress = JSON.parse(finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
     const location = getCookie('location');
     const today = new Date();
     const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    const user = getCookie('userName');
     let dbRef = firebase.database().ref(`/Prep Record/${todayStr}/${location}`);
     dbRef.set(finalPrepProgress);
+    dbRef.update({ 'user': user });
     if (extraPrepList[0]) {
         let completeHTML = "";
         extraPrepList.forEach((PrepItem) => {
@@ -368,6 +370,13 @@ function makePrepList() {
     let tomorrowSales = getTomorrowSales();
     const inventoryCookie = getCookie('inventory');
     const currentInventory = parseCookie(inventoryCookie, 'inventory');
+    const location = getCookie('location');
+    const user = getCookie('userName');
+    const now = new Date();
+    const nowStr = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+    const dbRef = firebase.database().ref(`/Inventory Record/${nowStr}/${location}`);
+    dbRef.set(currentInventory);
+    dbRef.update({ 'user': user });
     arrayOfItems.forEach((Item) => {
         const newPrepItem = new PrepItem(Item.itemName, Item.batchUnitName, Item.batchTimeMinutes, calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)) {
