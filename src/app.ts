@@ -202,6 +202,13 @@ function makeFinalPrepList (completeHTML: string){
 }
 
 function doneWithFinal(extraPrepList: PrepItem[]){
+    const finalPrepProgress = getCookie('finalPrepProgress');
+    const location = getCookie('location');
+    const today = new Date();
+    const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    
+    let dbRef = firebase.database().ref(`/Prep Record/${todayStr}/${location}`);
+    dbRef.set(finalPrepProgress);
     if (extraPrepList[0]){
         let completeHTML: string = "";
         extraPrepList.forEach ((PrepItem) => {
