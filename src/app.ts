@@ -422,7 +422,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     const inventoryCookie = getCookie('inventory');
     const currentInventory: { [id: string]: number } = parseCookie(inventoryCookie,'inventory');
     arrayOfItems.forEach((Item) => {
-        const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);    
+        const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)){
             case 2:
                 highPriority.push(newPrepItem);
