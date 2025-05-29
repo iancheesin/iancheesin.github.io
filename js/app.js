@@ -1,4 +1,3 @@
-
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -150,6 +149,12 @@ function makeFinalPrepList(completeHTML) {
     }
 }
 function doneWithFinal(extraPrepList) {
+    const finalPrepProgress = getCookie('finalPrepProgress');
+    const location = getCookie('location');
+    const today = new Date();
+    const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    let dbRef = firebase.database().ref(`/Prep Record/${todayStr}/${location}`);
+    dbRef.set(finalPrepProgress);
     if (extraPrepList[0]) {
         let completeHTML = "";
         extraPrepList.forEach((PrepItem) => {
