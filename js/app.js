@@ -153,12 +153,14 @@ function doneWithFinal(extraPrepList) {
     const finalPrepProgressStr = getCookie('finalPrepProgress');
     const finalPrepProgress = JSON.parse(finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
     const location = getCookie('location');
-    const today = new Date();
-    const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    const now = new Date();
+    const todayStr = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()}`;
+    const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
     const user = getCookie('userName');
-    let dbRef = firebase.database().ref(`/Prep Record/${todayStr}/${location}`);
+    let dbRef = firebase.database().ref(`/Prep Record//${location}${todayStr}`);
     dbRef.set(finalPrepProgress);
     dbRef.update({ 'user': user });
+    dbRef.update({ 'time': timeStr });
     if (extraPrepList[0]) {
         let completeHTML = "";
         extraPrepList.forEach((PrepItem) => {
@@ -373,8 +375,9 @@ function makePrepList() {
     const location = getCookie('location');
     const user = getCookie('userName');
     const now = new Date();
-    const nowStr = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()} ${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
-    const dbRef = firebase.database().ref(`/Inventory Record/${nowStr}/${location}`);
+    const todayStr = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()}`;
+    const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+    const dbRef = firebase.database().ref(`/Inventory Record/${location}/${todayStr}/${timeStr}`);
     dbRef.set(currentInventory);
     dbRef.update({ 'user': user });
     arrayOfItems.forEach((Item) => {
