@@ -4,6 +4,8 @@
 // import "firebase/compat/database";
 // import 'firebase/compat/firestore';
 
+//TODO 6/3: make extra prep list save (copy functionality from final prep list)
+
 type SalesHoursObj = {
     'Date': string;
     'Historical Sales': number;
@@ -183,7 +185,6 @@ function makeHTMLPrepRows (prepList: PrepItem[], name: string, cookieName:string
     return completeHTML;
 }
 
-//TODO: As of 5/24 error with this function and the progress array/cookie: It seems like the cookie is never created
 //returns a string of HTML code for table rows for a preplist that will be displayed as strong
 //prepList is an array of PrepItems to be prepped
 //name is the name of the preplist that these rows will be a part of (for example "final" or "extra")
@@ -628,7 +629,7 @@ function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepIt
     setPrepListCookie(lowPrioritySelected,'lPS');
     setPrepListCookie(extraPrepList, 'ePL');
 
-    //NOTE from Ian 5/24: I changed the cookie string passed to the makeHTMLPrep functions from finalPrepProgress (which is unset at the first start of this function) to hPF, hPU, and lPS
+    //TROUBLESHOOTING NOTE: if the following is not working correctly, try changing the cookie string passed to the makeHTMLPrep functions from finalPrepProgress to hPF, hPU, and lPS
     
     //2. create Final Prep List page
     //add high priority prep lists with strong
