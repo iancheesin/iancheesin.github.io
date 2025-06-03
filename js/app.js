@@ -1,4 +1,4 @@
-import firebase from "firebase/compat/app";
+
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -484,11 +484,11 @@ function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, low
     setPrepListCookie(highPriorityUnfinished, 'hPU');
     setPrepListCookie(lowPrioritySelected, 'lPS');
     setPrepListCookie(extraPrepList, 'ePL');
-    completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished, 'final', 'hPU');
-    completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished, 'final', 'hPF');
+    completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished, 'final', 'finalPrepProgress');
+    completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished, 'final', 'finalPrepProgress');
     const separator = `<tr class= "separator"><td></td><td></td><td></td><td></td></tr>`;
     completeHTML += separator;
-    completeHTML += makeHTMLPrepRows(lowPrioritySelected, 'final', 'lPS');
+    completeHTML += makeHTMLPrepRows(lowPrioritySelected, 'final', 'finalPrepProgress');
     makeFinalPrepList(completeHTML);
     highPriorityFinished.forEach((PrepItem) => {
         finalPrepList.push(PrepItem);
@@ -612,9 +612,11 @@ async function collectInfo() {
                     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
                 }
                 else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
+                    setInventoryCookie({}, 'finalPrepProgress');
                     makePrepList();
                 }
                 else {
+                    setInventoryCookie({}, 'finalPrepProgress');
                     inventoryForm('body');
                     collectInventory();
                 }

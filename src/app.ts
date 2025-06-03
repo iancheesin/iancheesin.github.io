@@ -83,7 +83,7 @@ function midnight(){
     return midnight;
 }
 
-//setX Functions:
+//setXCookie Functions:
     //each function deletes the old cookie or cookies and saves a new cookie or cookies
     //expire at midnight unless otherwise specified
 
@@ -632,15 +632,15 @@ function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepIt
     
     //2. create Final Prep List page
     //add high priority prep lists with strong
-    completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished,'final', 'hPU');
-    completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished,'final', 'hPF');
+    completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished,'final', 'finalPrepProgress');
+    completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished,'final', 'finalPrepProgress');
 
     //add a separator between high and low priority prep lists
     const separator: string = `<tr class= "separator"><td></td><td></td><td></td><td></td></tr>`;
     completeHTML += separator;
 
     //add low priority prep list
-    completeHTML += makeHTMLPrepRows(lowPrioritySelected,'final','lPS');
+    completeHTML += makeHTMLPrepRows(lowPrioritySelected,'final','finalPrepProgress');
 
     //display page
     makeFinalPrepList(completeHTML);
@@ -769,6 +769,8 @@ async function collectInfo(){
                     body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
                 }
                 setUserInfoCookie(form);
+
+                //2. check for a saved prep list
                 const hPF = getCookie('hPF');
                 const hPU = getCookie('hPU');
                 const lPS = getCookie('lPS');
@@ -789,12 +791,15 @@ async function collectInfo(){
                 // console.log(`Sales & Hours JSON in collectInfo: ${await getSalesHoursJson(getCookie('location'))}`);
                 setSpreadsheetDataCookies(dataString);
                 
-                //2. check for a saved prep list
                 if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
                     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
                 }else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
+                    //clear preplist progress if not using saved preplist
+                    setInventoryCookie({},'finalPrepProgress');
                     makePrepList();
                 }else{
+                    //clear preplist progress if not using saved preplist
+                    setInventoryCookie({},'finalPrepProgress');
                     //3. otherwise, have the user input a new inventory
                     inventoryForm('body');
                     collectInventory();
