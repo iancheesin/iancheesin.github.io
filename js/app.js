@@ -161,7 +161,7 @@ function displayExtraEnd(extraPrepList) {
     const location = getCookie('location');
     const now = new Date();
     const todayStr = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()}`;
-    const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+    const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds() > 9 ? '' : '0'}${now.getSeconds()}`;
     const user = getCookie('userName');
     let dbRef = firebase.database().ref(`/Prep Record/${location}/${todayStr}`);
     dbRef.set(finalPrepProgress);
