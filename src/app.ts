@@ -52,10 +52,12 @@ class Item {
     }
 }
 
+//rounds a number to the nearest tenth
 function roundToNearestTenth(number: number) {
   return Math.round(number * 10) / 10;
 }
 
+//gets a specific cookie value given a specific cookie name
 function getCookie(name:string){
     const cookieInfo = document.cookie
         .split("; ")
@@ -64,6 +66,7 @@ function getCookie(name:string){
     return cookieInfo;
 }
 
+//parses a cookie or logs a message if that cookie is undefined
 function parseCookie(cookie: string | undefined, cookieName: string){
     if (cookie){
         return JSON.parse(cookie);
@@ -72,6 +75,7 @@ function parseCookie(cookie: string | undefined, cookieName: string){
     }
 }
 
+//returns midnight for today's date
 function midnight(){
     const now = new Date();
     now.setHours(23, 59, 59, 0);
@@ -79,37 +83,50 @@ function midnight(){
     return midnight;
 }
 
+//setX Functions:
+    //each function deletes the old cookie or cookies and saves a new cookie or cookies
+    //expire at midnight unless otherwise specified
+
+
+//newInventory is the inventory to be saved
+//name is the name that the cookie will be saved under
 function setInventoryCookie(newInventory: Record<string, number>, name:string){
-    //this function will
-    //1. delete the old inventory cookie, if it exists
+    //delete old cookie
     document.cookie=`${name}=;expires=Fri, 12 Jan 2018`;
-    //2. create a new inventory cookie, which should be just one cookie storing a Record
+    //save new cookie
     document.cookie = `${name}=${JSON.stringify(newInventory)};expires=${midnight()};Partitioned;SameSite=none; secure`;
 }
 
+//user cookies do not expire automatically
+//there are two user cookies: the user's name and the user's location
+//form is the form where the user is submitting their info.
 function setUserInfoCookie(form: HTMLFormElement){
-    //this function will
-    //1. delete the old user cookies, if it exists
+    //delete old cookies
     document.cookie="userName=;expires=Fri, 12 Jan 2018";
     document.cookie="location=;expires=Fri, 12 Jan 2018";
-    //2. create new user cookies, which should never expire
+    //save new cookies
     document.cookie = `userName=${form.nameInput.value};expires=Fri, 1 Jan 2100;Partitioned;SameSite=none; secure`;
     document.cookie = `location=${form.locationInput.value};expires=Fri, 1 Jan 2100;Partitioned;SameSite=none; secure`;
 }
 
+//prepList is an array of PrepItems to be saved
+//name is the name that the cookie will be saved under
 function setPrepListCookie(prepList: PrepItem[], name:string){
-    //this function will
-    //1. delete the old cookie, if it exists
+    //delete old cookie
     document.cookie=`${name}=;expires=Fri, 12 Jan 2018`;
-    //2. create a new cookie
+    //save new cookie
     document.cookie = `${name}=${JSON.stringify(prepList)};expires=${midnight()};Partitioned;SameSite=none; secure`;
 }
 
+//parses and returns an array of location names from a hardcoded json string
 function getLocations(): string[]{
     const jsonStrLocations = '[ "Norcross", "Settlers Green", "The Commissary", "Portland", "Portsmouth", "Hub Hall", "Big Cheddah", "Monterey Jack", "Pepper Jack" ]';
     return JSON.parse(jsonStrLocations);
 }
 
+//creates a form to collect user name and location
+//locations is an array of location names
+//id is the name of the HTML id where the form will be created (most commonly "body")
 function userInfo(locations: string[], id: string){
     let completeHTML: string = '';
     let locationOptions: string = '';
@@ -131,6 +148,9 @@ function userInfo(locations: string[], id: string){
     }
 }
 
+//creates a form to collect inventory
+//id is the name of the HTML id where the form will be created (most commonly "body")
+//pulls list of items to inventory using getItems()
 async function inventoryForm (id: string){
     let completeHTML: string = "";
     let items: Item[] = getItems();
@@ -149,6 +169,11 @@ async function inventoryForm (id: string){
     }
 }
 
+//returns a string of HTML code for table rows for a preplist
+//prepList is an array of PrepItems to be prepped
+//name is the name of the preplist that these rows will be a part of (for example "final" or "extra")
+//cookieName is the name of the cookie where a user's previous progress in the preplist is saved
+//completeHTML is an optional argment containing a string of HTML code which this new code should be appended to
 function makeHTMLPrepRows (prepList: PrepItem[], name: string, cookieName:string, completeHTML: string = ''){
     const progress: Record<string, number> = parseCookie(getCookie(cookieName),cookieName);
     prepList.forEach ((PrepItem) => {
@@ -158,7 +183,12 @@ function makeHTMLPrepRows (prepList: PrepItem[], name: string, cookieName:string
     return completeHTML;
 }
 
-//TODO: As of 5/24 error with this functino and the progress array/cookie: It seems like the cookie is never created
+//TODO: As of 5/24 error with this function and the progress array/cookie: It seems like the cookie is never created
+//returns a string of HTML code for table rows for a preplist that will be displayed as strong
+//prepList is an array of PrepItems to be prepped
+//name is the name of the preplist that these rows will be a part of (for example "final" or "extra")
+//cookieName is the name of the cookie where a user's previous progress in the preplist is saved
+//completeHTML is an optional argment containing a string of HTML code which this new code should be appended to
 function makeHTMLPrepRowsStrong (prepList: PrepItem[], name: string, cookieName:string, completeHTML: string = ''){
     if (getCookie(cookieName) !== undefined){
         console.log('the cookie exists!')
@@ -178,6 +208,8 @@ function makeHTMLPrepRowsStrong (prepList: PrepItem[], name: string, cookieName:
     return completeHTML;
 }
 
+//returns a string of HTML code for the Final Prep List
+//completeHTML is a string of HTML code for the table rows for all items to be included in the Final Prep List
 function makeFinalPrepList (completeHTML: string){
     completeHTML = `<h1>Final Prep List</h1>
                     <p>Items needed for tomorrow are in <strong>bold</strong>.</p>
@@ -201,7 +233,11 @@ function makeFinalPrepList (completeHTML: string){
         }
 }
 
-function doneWithFinal(extraPrepList: PrepItem[]){
+//TODO: for Ian, describe what this function is doing with firebase
+//checks if the Final Prep List is completed
+//if so, creates the Extra Prep List or displays end page depending on whether there is anything on the extra prep list
+//extraPrepList is an array of PrepItems to be prepped on the Extra Prep List
+function displayExtraEnd(extraPrepList: PrepItem[]){
     const finalPrepProgressStr = getCookie('finalPrepProgress');
     const finalPrepProgress = JSON.parse(finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
     const location = getCookie('location');
@@ -236,7 +272,7 @@ function doneWithFinal(extraPrepList: PrepItem[]){
         if (body) {
             body.innerHTML = completeHTML;
         }else {
-            console.log("doneWithFinal did not find an HTML element where one was expected");
+            console.log("displayExtraEnd did not find an HTML element where one was expected");
         }
         const submitButton = document.getElementById('submitButtonExtra');
         submitButton?.addEventListener('click', () => {
@@ -250,14 +286,16 @@ function doneWithFinal(extraPrepList: PrepItem[]){
             if(isUnfilled){
                 alert('You have not completed this prep list! Prep all the items to finish prep.');
             }else{
-                HtmlNothingToPrep();
+                nothingToPrep();
             }
         })
     }else if(!extraPrepList[0]){
-        HtmlNothingToPrep();
+        nothingToPrep();
     }
 }
 
+//converts data from an HTML form to a record
+//formData is the HTML form data to be converted
 function formDataToRecord(formData: FormData): Record<string, number> {
     const record: Record<string, number> = {};
     formData.forEach((value, key) => {
@@ -266,12 +304,23 @@ function formDataToRecord(formData: FormData): Record<string, number> {
     return record;
 }
 
-function calcNeededTomorrow (item: Item, tomorrowSales: number, currentInventory: { [id: string]: number }): number /*returns batches needed tomorrow*/{
+//calculates how much of an item we should prep to be ready for tomorrow
+//item is the item we would like to do this calulation for
+//tomorrowSales is how much we are predicted to do in sales tomorrow (based on past sales data)
+//currentInventory is how much of this item we currently have in our inventory
+//returns a number of batches needed for tomorrow
+function calcNeededTomorrow (item: Item, tomorrowSales: number, currentInventory: { [id: string]: number }): number{
     let neededTomorrow = roundToNearestTenth((tomorrowSales * item.batchesPerSaleDollar * 1.25)-currentInventory[item.itemName]);
     return neededTomorrow;
 }
 
-function calcNeededThisWeek (item: Item, thisWeekSales: number, tomorrowSales:number, currentInventory: { [id: string]: number }): number /*returns batches needed this week*/{
+//calculates how much of an item we should prep to be ready for this week
+//item is the item we would like to do this calulation for
+//thisWeekSales is how much we are predicted to do in sales this week (based on past sales data)
+//tomorrowSales is how much we are predicted to do in sales tomorrow (based on past sales data)
+//currentInventory is how much of this item we currently have in our inventory
+//returns a number of batches needed for this week
+function calcNeededThisWeek (item: Item, thisWeekSales: number, tomorrowSales:number, currentInventory: { [id: string]: number }): number{
     let neededThisWeek = Math.floor((thisWeekSales * item.batchesPerSaleDollar * 0.85)-currentInventory[item.itemName]);// this is floored because we are looking for an underestimate of whole batches to prep for next week, rather than what we will absolutely need for tomorrow (which is why calcNeededTomorrow isn't floored)
     if (neededThisWeek <= 0 && calcNeededTomorrow(item, tomorrowSales, currentInventory) > 0){
         neededThisWeek = 1;
@@ -279,8 +328,13 @@ function calcNeededThisWeek (item: Item, thisWeekSales: number, tomorrowSales:nu
     return neededThisWeek;
 }
 
+//checks the priority level of an item and returns a number rating its priority
 //A priority level of 0 means not needed, 1 means needed this week but not ASAP, 2 means needed ASAP
-function checkPriorityLevel (item: Item, thisWeekSales: number, tomorrowSales: number, currentInventory: { [id: string]: number }): number/*returns a prority level of 0 (does not need to be prepped at all), 1 (could be prepped for the week), or 2 (needs to be prepped for tomorrow)*/{
+//item is the item to be checked
+//thisWeekSales is how much we are predicted to do in sales this week (based on past sales data)
+//tomorrowSales is how much we are predicted to do in sales tomorrow (based on past sales data)
+//currentInventory is how much of this item we currently have in our inventory
+function checkPriorityLevel (item: Item, thisWeekSales: number, tomorrowSales: number, currentInventory: { [id: string]: number }): number{
     const neededTomorrow: number = calcNeededTomorrow(item, tomorrowSales, currentInventory);
     const neededThisWeek: number = calcNeededThisWeek(item, thisWeekSales, tomorrowSales, currentInventory);
     if (neededTomorrow < 0 || neededTomorrow === 0) {
@@ -299,19 +353,29 @@ function checkPriorityLevel (item: Item, thisWeekSales: number, tomorrowSales: n
     }   
 }
 
-function HtmlNothingToPrep(){
+//creates an HTML page that informs the user that there is nothing else to prep
+function nothingToPrep(){
     let completeHTML = '<h2>There is nothing to prep!</h2>'
         const body: HTMLElement | null = document.getElementById('body');
         if (body) {
             body.innerHTML = completeHTML;
         }
         else {
-            console.log("HtmlNothingToPrep did not find an HTML element where one was expected");
+            console.log("nothingToPrep did not find an HTML element where one was expected");
         }
 }
 
+//1. creates a table that allows the user to select which low priority items to prep
+//2. allows the user to see how much prep time they have left as they make their selections
+//3. upon submission, checks that the user has filled up all their prep time and, if so, displays the final prep list
+//highPriorityUnfinished is an array of PrepItems which are ingredients and need to be prepped for tomorrow
+//highPriorityFinished is an array of PrepItems which are finished items and need to be prepped for tomorrow
+//prepList is an array of PrepItems which could be prepped for this week
+//lowPrioritySelected and extraPrep are empty arrays of PrepItems
+//remainingPrepTime is how much prep time the user has left after subtracting the prep time for high priority items
+//id is the HTML id for the locations where the table will be created
 function sortPrepListByUi (highPriorityUnfinished: PrepItem[], highPriorityFinished: PrepItem[], prepList: PrepItem[], lowPrioritySelected: PrepItem[], extraPrep: PrepItem[], remainingPrepTime: number, id: string){
-    //define the table
+    //1. create table
     let completeHTML: string = "";
     prepList.forEach ((PrepItem) => {
         let row: string = `<tr><td>${PrepItem.itemName}</td><td><input class="lowPriorityUiCheckbox" type="checkbox" id="lowPrioritySelectionTable${PrepItem.itemName}"></td><td>${PrepItem.totalBatchTime} min</td></tr>`;
@@ -335,7 +399,7 @@ function sortPrepListByUi (highPriorityUnfinished: PrepItem[], highPriorityFinis
     else {
         console.log("sortPrepListByUi did not find an HTML element where one was expected");
     }
-    //make checkboxes change remaining prep time
+    //2. allow the user to select which low priority items to prep and display the remaining prep time as they make their selections
     let displayPrepTime: number = remainingPrepTime;
     prepList.forEach((PrepItem) => {
         const checkbox = document.getElementById(`lowPrioritySelectionTable${PrepItem.itemName}`) as HTMLInputElement;
@@ -354,7 +418,7 @@ function sortPrepListByUi (highPriorityUnfinished: PrepItem[], highPriorityFinis
             }
         })
     })
-    //make the submit button functional
+    //3. upon submission check that the user has filled all their prep time
     const submitButton = document.getElementById('submitButton');
     submitButton?.addEventListener('click', () => {
         if (displayPrepTime <= 0){
@@ -398,6 +462,8 @@ function sortPrepListByUi (highPriorityUnfinished: PrepItem[], highPriorityFinis
     })
 }
 
+//sorts PrepItems on a given preplist based on whether they are finished items
+//prepList is an array of PrepItems which will be sorted into lists of finished and unfinished items
 function sortPrepListByFinished(prepList: PrepItem[]):[PrepItem[],PrepItem[]]{
     const unfinished: PrepItem[] = [];
     const finished: PrepItem[] = [];
@@ -412,7 +478,14 @@ function sortPrepListByFinished(prepList: PrepItem[]):[PrepItem[],PrepItem[]]{
     return [unfinished, finished];
 }
 
-function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFinished: PrepItem[], lowPrioritySelected: PrepItem[], extraPrep: PrepItem[]*//*should eventually return two json strings, one of the high priority list and the other of the low priority list, each list should have the itemName, prepQuantity, and batchUnitName*/{
+//1. checks the priority of each item on the item list and sorts them into high priority, low priority, and dont prep lists
+//2. adjusts the priority of ingredients based on the priority of the item they are used to make
+//3. calculates how long it will take to prep all the high priority ingredients
+//4. calculates how much prep time the user has left after removing the prep time for high priority items
+//5. sorts high priority items by thier total batch time in descending order
+//6. sorts high priority items into finished and unfinished item lists
+//7. sorts the low priority prep list if needed, and otherwise displays the Final Prep List or the end page
+function makePrepList (){
     let highPriorityPrepTime = 0;
     let highPriority: PrepItem[] = [];
     let lowPriority: PrepItem[] = [];
@@ -426,14 +499,9 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     let prepMinutes:number = prepHours * 60;
     let thisWeekSales:number = getThisWeekSales();
     let tomorrowSales:number = getTomorrowSales();
-
-    // const prepHours: number = getPrepHours();
-    // const prepMinutes: number = prepHours * 60;
-    // const thisWeekSales = getThisWeekSales();
-    // const tomorrowSales = getTomorrowSales(getCookie('location'));
     const inventoryCookie = getCookie('inventory');
     const currentInventory: { [id: string]: number } = parseCookie(inventoryCookie,'inventory');
-    //save prep list
+
     const location = getCookie('location');
     const user = getCookie('userName');
     const now = new Date();
@@ -443,6 +511,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
     dbRef.set(currentInventory);
     dbRef.update({'user': user});
 
+    //1. sort items by priority
     arrayOfItems.forEach((Item) => {
         const newPrepItem = new PrepItem (Item.itemName,Item.batchUnitName,Item.batchTimeMinutes,calcNeededThisWeek(Item, thisWeekSales, tomorrowSales, currentInventory), calcNeededTomorrow(Item, tomorrowSales, currentInventory), Item.finishedItemBool, Item.ingredients);
         switch (checkPriorityLevel(Item, thisWeekSales, tomorrowSales, currentInventory)){
@@ -461,7 +530,7 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
 
         }
     })
-    //adjust ingredient priority here
+    //2. adjust ingredient priority
     dontPrep.forEach((PrepItem) => {
         if (PrepItem.finishedItemBool !== undefined){
             if(PrepItem.ingredients !== undefined){
@@ -514,34 +583,54 @@ function makePrepList () /*[highPriorityUnfinished: PrepItem[], highPriorityFini
             }else{}
         }else{}
     });
+    
+    //3. calculate high priority prep time
     highPriority.forEach((PrepItem) => {
         if(PrepItem !== undefined) {
             highPriorityPrepTime += PrepItem.totalBatchTime;
         }
     });
 
+    //4. calculate remaining prep time
     let remainingPrepTime = prepMinutes - highPriorityPrepTime;
-    highPriority.sort((a, b) => b.totalBatchTime - a.totalBatchTime); //sort highPriority by totalBatchTime in descending order
-    [highPriorityUnfinished, highPriorityFinished] = sortPrepListByFinished(highPriority); //sort highPriority into finished and unfinished item lists
+
+    //5. sort highPriority by totalBatchTime in descending order
+    highPriority.sort((a, b) => b.totalBatchTime - a.totalBatchTime);
+
+    //6. sort highPriority into finished and unfinished item lists
+    [highPriorityUnfinished, highPriorityFinished] = sortPrepListByFinished(highPriority);
+
+    //7. sort low priority prep list if needed, otherwise display the Final Prep List or the end page
     if (remainingPrepTime > 0 && lowPriority[0]) {
         sortPrepListByUi(highPriorityUnfinished, highPriorityFinished, lowPriority, lowPrioritySelected, extraPrep, remainingPrepTime,"body");
     }else if (highPriorityFinished[0] || highPriorityUnfinished[0]){
         displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, lowPriority);
     }else{
-        HtmlNothingToPrep();
+        nothingToPrep();
     }
 }
 
+//1. saves each prep list in its final form
+//2. creates the Final Prep List page
+//3. saves prep progress
+//4. on submit, checks that all items have been prepped and alerts user if any seem low or high 
+//then either displays the extra prep page or the end page
+//highPriorityUnfinished is an array of PrepItems which are ingredients and need to be prepped for tomorrow
+//highPriorityFinished is an array of PrepItems which are finished items and need to be prepped for tomorrow
+//lowPrioritySelected is an array of PrepItems which could be prepped for the week and were selected by the user to prep today
+//extraPrepList is an array of PrepItems which could be prepped for the week but were not selected by the user to prep today
 function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepItem[] */highPriorityFinished: PrepItem[] = [], highPriorityUnfinished: PrepItem[], lowPrioritySelected: PrepItem[], extraPrepList: PrepItem[]){
     let completeHTML: string = "";
     let finalPrepList: PrepItem[] =[];
-    //save preplists
+    //1. save preplists
     setPrepListCookie(highPriorityFinished,'hPF');
     setPrepListCookie(highPriorityUnfinished,'hPU');
     setPrepListCookie(lowPrioritySelected,'lPS');
     setPrepListCookie(extraPrepList, 'ePL');
 
     //NOTE from Ian 5/24: I changed the cookie string passed to the makeHTMLPrep functions from finalPrepProgress (which is unset at the first start of this function) to hPF, hPU, and lPS
+    
+    //2. create Final Prep List page
     //add high priority prep lists with strong
     completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished,'final', 'hPU');
     completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished,'final', 'hPF');
@@ -568,7 +657,7 @@ function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepIt
     })
 
     
-
+    //3. save prep progress
     //create prep progress object
     const finalPrepProgress: Record<string, number> = {};
     finalPrepList.forEach((PrepItem) => {
@@ -586,7 +675,7 @@ function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepIt
         })
     })
 
-    //make the submit button work
+    //4. on submit, check that all items have been prepped and alert user if any seem low or high then either display the extra prep page or the end page
     const submitButton = document.getElementById('submitButton');
     submitButton?.addEventListener('click', () => {
         const inputs = document.getElementsByClassName('finalPrepListInput') as HTMLCollectionOf<HTMLInputElement>; 
@@ -615,14 +704,14 @@ function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepIt
                 }
             }
             if (!aboveMax && belowMin && confirm(`At least one of your entries is below the amount needed for tomorrow. Are you sure you're done with this prep list?`)){
-               doneWithFinal(extraPrepList);
+                displayExtraEnd(extraPrepList);
                //TODO dummy function to save inputs permanently
             }else if (aboveMax && !belowMin && confirm(`At least one of your entries is above the amount needed for next week. Are you sure you entered the amount correctly?`)){
-                doneWithFinal(extraPrepList);
+                displayExtraEnd(extraPrepList);
             }else if (aboveMax && belowMin && confirm(`At least one of your entries is below the amount needed for tomorrow AND at least one of your entries is above the amount needed for next week. Are you sure you entered all the amounts correctly and you're done with this prep list?`)){
-                doneWithFinal(extraPrepList);
+                displayExtraEnd(extraPrepList);
             }else if (!aboveMax && !belowMin){
-                doneWithFinal(extraPrepList);
+                displayExtraEnd(extraPrepList);
             }
 
         }else if(isUnfilled){
@@ -664,13 +753,17 @@ async function getSalesHoursJson(location: string = 'Norcross'): Promise<string>
     return jsonStrItems;
 }
 
-async function onSubmitUserInfo(){
-
+//TODO: for Ian, describe what this function is doing with firebase
+//1. on submission of the User Info Form, checks that the user has input their name
+//2. checks if there is a previously saved inventory and, if so, asks the user if they would like to use that
+//3. otherwise, goes on to allow the user in input a new inventory
+async function collectInfo(){
     const form = document.getElementById('userInfoForm') as HTMLFormElement;
     let body = document.getElementById('body');
     if(form){
         await form.addEventListener('submit', async (event) => {
             event.preventDefault();
+            //1. check if the user has input a name
             if (form.nameInput.value){
                 if (body !== null) {
                     body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
@@ -692,31 +785,33 @@ async function onSubmitUserInfo(){
                 let dataString = await getFirebaseData(getCookie('location'));
                 // console.log(`Data string:`);
                 // console.log(dataString);
-                // console.log(`Item JSON in onSubmitUserInfo: ${await getItemJson(getCookie('location'))}`);
-                // console.log(`Sales & Hours JSON in onSubmitUserInfo: ${await getSalesHoursJson(getCookie('location'))}`);
+                // console.log(`Item JSON in collectInfo: ${await getItemJson(getCookie('location'))}`);
+                // console.log(`Sales & Hours JSON in collectInfo: ${await getSalesHoursJson(getCookie('location'))}`);
                 setSpreadsheetDataCookies(dataString);
+                
+                //2. check for a saved prep list
                 if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
                     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
-                }
-                else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
+                }else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
                     makePrepList();
-                }
-                else {
+                }else{
+                    //3. otherwise, have the user input a new inventory
                     inventoryForm('body');
-                    onSubmitInventory();
+                    collectInventory();
                 }
             }else if(!form.nameInput.value){
                 alert('Please input your name');
             }else{
-                console.log('oh nooo From: onSubmitUserInfo');
+                console.log('oh nooo From: collectInfo');
             }
         })
     }else{
-        console.log('onSubmitUserInfo did not find a form');
+        console.log('collectInfo did not find a form');
     }
 }
 
-function onSubmitInventory(){
+//on submission of the Inventory Form, checks that there are no negative inputs and alerts the user if any inputs seem especially high
+function collectInventory(){
     const form = document.getElementById('inventoryForm') as HTMLFormElement;
     if(form){
         form.addEventListener('submit', (event) => {
@@ -824,7 +919,7 @@ function setSpreadsheetDataCookies(data: string[]) {
 function onLoad(){
     const locations: string[] = getLocations();
     userInfo(locations, 'body');
-    onSubmitUserInfo();
+    collectInfo();
 }
 
 //**IMPORTANT** The following function(s) need(s) to be placed in the Code.gs file, not the JavaScript.html file

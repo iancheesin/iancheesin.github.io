@@ -1,4 +1,4 @@
-
+import firebase from "firebase/compat/app";
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -149,7 +149,7 @@ function makeFinalPrepList(completeHTML) {
         console.log("finalPrepList did not find an HTML element where one was expected");
     }
 }
-function doneWithFinal(extraPrepList) {
+function displayExtraEnd(extraPrepList) {
     const finalPrepProgressStr = getCookie('finalPrepProgress');
     const finalPrepProgress = JSON.parse(finalPrepProgressStr !== undefined ? finalPrepProgressStr : 'error');
     const location = getCookie('location');
@@ -184,7 +184,7 @@ function doneWithFinal(extraPrepList) {
             body.innerHTML = completeHTML;
         }
         else {
-            console.log("doneWithFinal did not find an HTML element where one was expected");
+            console.log("displayExtraEnd did not find an HTML element where one was expected");
         }
         const submitButton = document.getElementById('submitButtonExtra');
         submitButton === null || submitButton === void 0 ? void 0 : submitButton.addEventListener('click', () => {
@@ -199,12 +199,12 @@ function doneWithFinal(extraPrepList) {
                 alert('You have not completed this prep list! Prep all the items to finish prep.');
             }
             else {
-                HtmlNothingToPrep();
+                nothingToPrep();
             }
         });
     }
     else if (!extraPrepList[0]) {
-        HtmlNothingToPrep();
+        nothingToPrep();
     }
 }
 function formDataToRecord(formData) {
@@ -244,14 +244,14 @@ function checkPriorityLevel(item, thisWeekSales, tomorrowSales, currentInventory
         return 0;
     }
 }
-function HtmlNothingToPrep() {
+function nothingToPrep() {
     let completeHTML = '<h2>There is nothing to prep!</h2>';
     const body = document.getElementById('body');
     if (body) {
         body.innerHTML = completeHTML;
     }
     else {
-        console.log("HtmlNothingToPrep did not find an HTML element where one was expected");
+        console.log("nothingToPrep did not find an HTML element where one was expected");
     }
 }
 function sortPrepListByUi(highPriorityUnfinished, highPriorityFinished, prepList, lowPrioritySelected, extraPrep, remainingPrepTime, id) {
@@ -474,7 +474,7 @@ function makePrepList() {
         displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, lowPriority);
     }
     else {
-        HtmlNothingToPrep();
+        nothingToPrep();
     }
 }
 function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, lowPrioritySelected, extraPrepList) {
@@ -539,16 +539,16 @@ function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, low
                 }
             }
             if (!aboveMax && belowMin && confirm(`At least one of your entries is below the amount needed for tomorrow. Are you sure you're done with this prep list?`)) {
-                doneWithFinal(extraPrepList);
+                displayExtraEnd(extraPrepList);
             }
             else if (aboveMax && !belowMin && confirm(`At least one of your entries is above the amount needed for next week. Are you sure you entered the amount correctly?`)) {
-                doneWithFinal(extraPrepList);
+                displayExtraEnd(extraPrepList);
             }
             else if (aboveMax && belowMin && confirm(`At least one of your entries is below the amount needed for tomorrow AND at least one of your entries is above the amount needed for next week. Are you sure you entered all the amounts correctly and you're done with this prep list?`)) {
-                doneWithFinal(extraPrepList);
+                displayExtraEnd(extraPrepList);
             }
             else if (!aboveMax && !belowMin) {
-                doneWithFinal(extraPrepList);
+                displayExtraEnd(extraPrepList);
             }
         }
         else if (isUnfilled) {
@@ -586,7 +586,7 @@ async function getSalesHoursJson(location = 'Norcross') {
     });
     return jsonStrItems;
 }
-async function onSubmitUserInfo() {
+async function collectInfo() {
     const form = document.getElementById('userInfoForm');
     let body = document.getElementById('body');
     if (form) {
@@ -616,22 +616,22 @@ async function onSubmitUserInfo() {
                 }
                 else {
                     inventoryForm('body');
-                    onSubmitInventory();
+                    collectInventory();
                 }
             }
             else if (!form.nameInput.value) {
                 alert('Please input your name');
             }
             else {
-                console.log('oh nooo From: onSubmitUserInfo');
+                console.log('oh nooo From: collectInfo');
             }
         });
     }
     else {
-        console.log('onSubmitUserInfo did not find a form');
+        console.log('collectInfo did not find a form');
     }
 }
-function onSubmitInventory() {
+function collectInventory() {
     const form = document.getElementById('inventoryForm');
     if (form) {
         form.addEventListener('submit', (event) => {
@@ -715,7 +715,7 @@ function setSpreadsheetDataCookies(data) {
 function onLoad() {
     const locations = getLocations();
     userInfo(locations, 'body');
-    onSubmitUserInfo();
+    collectInfo();
 }
 async function getFirebaseData(locationStr = '') {
     const salesArr = JSON.parse(await getSalesHoursJson());
