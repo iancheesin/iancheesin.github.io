@@ -6,6 +6,14 @@
 
 //TODO 6/3: make extra prep list save (copy functionality from final prep list)
 
+//global cookie name variables
+const finalPrepProgressCN = 'finalPrepProgress';
+const inventoryCN = 'inventory';
+const highPriorityFinishedCN = 'hPF';
+const highPriorityUnfinishedCN = 'hPU';
+const lowPrioritySelectedCN = 'lPS';
+const extraPrepListCN = 'ePL';
+
 type SalesHoursObj = {
     'Date': string;
     'Historical Sales': number;
@@ -500,8 +508,8 @@ function makePrepList (){
     let prepMinutes:number = prepHours * 60;
     let thisWeekSales:number = getThisWeekSales();
     let tomorrowSales:number = getTomorrowSales();
-    const inventoryCookie = getCookie('inventory');
-    const currentInventory: { [id: string]: number } = parseCookie(inventoryCookie,'inventory');
+    const inventoryCookie = getCookie(inventoryCN);
+    const currentInventory: { [id: string]: number } = parseCookie(inventoryCookie,inventoryCN);
 
     const location = getCookie('location');
     const user = getCookie('userName');
@@ -624,24 +632,24 @@ function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepIt
     let completeHTML: string = "";
     let finalPrepList: PrepItem[] =[];
     //1. save preplists
-    setPrepListCookie(highPriorityFinished,'hPF');
-    setPrepListCookie(highPriorityUnfinished,'hPU');
-    setPrepListCookie(lowPrioritySelected,'lPS');
-    setPrepListCookie(extraPrepList, 'ePL');
+    setPrepListCookie(highPriorityFinished, highPriorityFinishedCN);
+    setPrepListCookie(highPriorityUnfinished, highPriorityUnfinishedCN);
+    setPrepListCookie(lowPrioritySelected, lowPrioritySelectedCN);
+    setPrepListCookie(extraPrepList, extraPrepListCN);
 
     //TROUBLESHOOTING NOTE: if the following is not working correctly, try changing the cookie string passed to the makeHTMLPrep functions from finalPrepProgress to hPF, hPU, and lPS
     
     //2. create Final Prep List page
     //add high priority prep lists with strong
-    completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished,'final', 'finalPrepProgress');
-    completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished,'final', 'finalPrepProgress');
+    completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished,'final', finalPrepProgressCN);
+    completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished,'final', finalPrepProgressCN);
 
     //add a separator between high and low priority prep lists
     const separator: string = `<tr class= "separator"><td></td><td></td><td></td><td></td></tr>`;
     completeHTML += separator;
 
     //add low priority prep list
-    completeHTML += makeHTMLPrepRows(lowPrioritySelected,'final','finalPrepProgress');
+    completeHTML += makeHTMLPrepRows(lowPrioritySelected,'final',finalPrepProgressCN);
 
     //display page
     makeFinalPrepList(completeHTML);
@@ -664,7 +672,7 @@ function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepIt
     finalPrepList.forEach((PrepItem) => {
         const input = document.getElementById(`finalPrepList${PrepItem.itemName}`) as HTMLInputElement;
         finalPrepProgress[PrepItem.itemName] = parseInt(input.value);
-        setInventoryCookie(finalPrepProgress,'finalPrepProgress');
+        setInventoryCookie(finalPrepProgress, finalPrepProgressCN);
     })
 
     //save prep progress
@@ -672,7 +680,7 @@ function displayPrepLists (/*prepLists: Array<PrepItem[]>, extraPrepList: PrepIt
         const input = document.getElementById(`finalPrepList${PrepItem.itemName}`) as HTMLInputElement;
         input.addEventListener('input', () => {
             finalPrepProgress[PrepItem.itemName] = parseInt(input.value);
-            setInventoryCookie(finalPrepProgress,'finalPrepProgress');
+            setInventoryCookie(finalPrepProgress, finalPrepProgressCN);
         })
     })
 
@@ -772,17 +780,17 @@ async function collectInfo(){
                 setUserInfoCookie(form);
 
                 //2. check for a saved prep list
-                const hPF = getCookie('hPF');
-                const hPU = getCookie('hPU');
-                const lPS = getCookie('lPS');
-                const ePL = getCookie('ePL');
+                const hPF = getCookie(highPriorityFinishedCN);
+                const hPU = getCookie(highPriorityUnfinishedCN);
+                const lPS = getCookie(lowPrioritySelectedCN);
+                const ePL = getCookie(extraPrepListCN);
 
-                const highPriorityFinished = parseCookie(hPF,'hPF');
-                const highPriorityUnfinished = parseCookie(hPU,'hPU');
-                const lowPrioritySelected = parseCookie(lPS,'lPS');
-                const extraPrepList = parseCookie(ePL,'ePL');
+                const highPriorityFinished = parseCookie(hPF,highPriorityFinishedCN);
+                const highPriorityUnfinished = parseCookie(hPU,highPriorityUnfinishedCN);
+                const lowPrioritySelected = parseCookie(lPS,lowPrioritySelectedCN);
+                const extraPrepList = parseCookie(ePL,extraPrepListCN);
 
-                const inventoryCookie = getCookie('inventory');
+                const inventoryCookie = getCookie(inventoryCN);
 
                 
                 let dataString = await getFirebaseData(getCookie('location'));
@@ -796,11 +804,11 @@ async function collectInfo(){
                     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
                 }else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
                     //clear preplist progress if not using saved preplist
-                    setInventoryCookie({},'finalPrepProgress');
+                    setInventoryCookie({},finalPrepProgressCN);
                     makePrepList();
                 }else{
                     //clear preplist progress if not using saved preplist
-                    setInventoryCookie({},'finalPrepProgress');
+                    setInventoryCookie({},finalPrepProgressCN);
                     //3. otherwise, have the user input a new inventory
                     inventoryForm('body');
                     collectInventory();
@@ -840,11 +848,11 @@ function collectInventory(){
                 alert('You cannot submit a negative value for inventory');
             }else if(!negativeEntry && seemsHigh){
                 if(confirm('At least one of your entries seems a little high. Are you sure this inventory is correct?')){
-                    setInventoryCookie(inventory, 'inventory');
+                    setInventoryCookie(inventory, inventoryCN);
                     makePrepList();
                 }else{}
             }else if (!negativeEntry){
-                setInventoryCookie(inventory, 'inventory');
+                setInventoryCookie(inventory, inventoryCN);
                 makePrepList();
             }
         })

@@ -1,4 +1,10 @@
 
+const finalPrepProgressCN = 'finalPrepProgress';
+const inventoryCN = 'inventory';
+const highPriorityFinishedCN = 'hPF';
+const highPriorityUnfinishedCN = 'hPU';
+const lowPrioritySelectedCN = 'lPS';
+const extraPrepListCN = 'ePL';
 class PrepItem {
     constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
         this.itemName = itemName;
@@ -157,7 +163,7 @@ function displayExtraEnd(extraPrepList) {
     const todayStr = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()}`;
     const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
     const user = getCookie('userName');
-    let dbRef = firebase.database().ref(`/Prep Record//${location}${todayStr}`);
+    let dbRef = firebase.database().ref(`/Prep Record/${location}/${todayStr}`);
     dbRef.set(finalPrepProgress);
     dbRef.update({ 'user': user });
     dbRef.update({ 'time': timeStr });
@@ -370,8 +376,8 @@ function makePrepList() {
     let prepMinutes = prepHours * 60;
     let thisWeekSales = getThisWeekSales();
     let tomorrowSales = getTomorrowSales();
-    const inventoryCookie = getCookie('inventory');
-    const currentInventory = parseCookie(inventoryCookie, 'inventory');
+    const inventoryCookie = getCookie(inventoryCN);
+    const currentInventory = parseCookie(inventoryCookie, inventoryCN);
     const location = getCookie('location');
     const user = getCookie('userName');
     const now = new Date();
@@ -480,15 +486,15 @@ function makePrepList() {
 function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, lowPrioritySelected, extraPrepList) {
     let completeHTML = "";
     let finalPrepList = [];
-    setPrepListCookie(highPriorityFinished, 'hPF');
-    setPrepListCookie(highPriorityUnfinished, 'hPU');
-    setPrepListCookie(lowPrioritySelected, 'lPS');
-    setPrepListCookie(extraPrepList, 'ePL');
-    completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished, 'final', 'finalPrepProgress');
-    completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished, 'final', 'finalPrepProgress');
+    setPrepListCookie(highPriorityFinished, highPriorityFinishedCN);
+    setPrepListCookie(highPriorityUnfinished, highPriorityUnfinishedCN);
+    setPrepListCookie(lowPrioritySelected, lowPrioritySelectedCN);
+    setPrepListCookie(extraPrepList, extraPrepListCN);
+    completeHTML += makeHTMLPrepRowsStrong(highPriorityUnfinished, 'final', finalPrepProgressCN);
+    completeHTML += makeHTMLPrepRowsStrong(highPriorityFinished, 'final', finalPrepProgressCN);
     const separator = `<tr class= "separator"><td></td><td></td><td></td><td></td></tr>`;
     completeHTML += separator;
-    completeHTML += makeHTMLPrepRows(lowPrioritySelected, 'final', 'finalPrepProgress');
+    completeHTML += makeHTMLPrepRows(lowPrioritySelected, 'final', finalPrepProgressCN);
     makeFinalPrepList(completeHTML);
     highPriorityFinished.forEach((PrepItem) => {
         finalPrepList.push(PrepItem);
@@ -503,13 +509,13 @@ function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, low
     finalPrepList.forEach((PrepItem) => {
         const input = document.getElementById(`finalPrepList${PrepItem.itemName}`);
         finalPrepProgress[PrepItem.itemName] = parseInt(input.value);
-        setInventoryCookie(finalPrepProgress, 'finalPrepProgress');
+        setInventoryCookie(finalPrepProgress, finalPrepProgressCN);
     });
     finalPrepList.forEach((PrepItem) => {
         const input = document.getElementById(`finalPrepList${PrepItem.itemName}`);
         input.addEventListener('input', () => {
             finalPrepProgress[PrepItem.itemName] = parseInt(input.value);
-            setInventoryCookie(finalPrepProgress, 'finalPrepProgress');
+            setInventoryCookie(finalPrepProgress, finalPrepProgressCN);
         });
     });
     const submitButton = document.getElementById('submitButton');
@@ -597,26 +603,26 @@ async function collectInfo() {
                     body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
                 }
                 setUserInfoCookie(form);
-                const hPF = getCookie('hPF');
-                const hPU = getCookie('hPU');
-                const lPS = getCookie('lPS');
-                const ePL = getCookie('ePL');
-                const highPriorityFinished = parseCookie(hPF, 'hPF');
-                const highPriorityUnfinished = parseCookie(hPU, 'hPU');
-                const lowPrioritySelected = parseCookie(lPS, 'lPS');
-                const extraPrepList = parseCookie(ePL, 'ePL');
-                const inventoryCookie = getCookie('inventory');
+                const hPF = getCookie(highPriorityFinishedCN);
+                const hPU = getCookie(highPriorityUnfinishedCN);
+                const lPS = getCookie(lowPrioritySelectedCN);
+                const ePL = getCookie(extraPrepListCN);
+                const highPriorityFinished = parseCookie(hPF, highPriorityFinishedCN);
+                const highPriorityUnfinished = parseCookie(hPU, highPriorityUnfinishedCN);
+                const lowPrioritySelected = parseCookie(lPS, lowPrioritySelectedCN);
+                const extraPrepList = parseCookie(ePL, extraPrepListCN);
+                const inventoryCookie = getCookie(inventoryCN);
                 let dataString = await getFirebaseData(getCookie('location'));
                 setSpreadsheetDataCookies(dataString);
                 if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
                     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
                 }
                 else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
-                    setInventoryCookie({}, 'finalPrepProgress');
+                    setInventoryCookie({}, finalPrepProgressCN);
                     makePrepList();
                 }
                 else {
-                    setInventoryCookie({}, 'finalPrepProgress');
+                    setInventoryCookie({}, finalPrepProgressCN);
                     inventoryForm('body');
                     collectInventory();
                 }
@@ -657,13 +663,13 @@ function collectInventory() {
             }
             else if (!negativeEntry && seemsHigh) {
                 if (confirm('At least one of your entries seems a little high. Are you sure this inventory is correct?')) {
-                    setInventoryCookie(inventory, 'inventory');
+                    setInventoryCookie(inventory, inventoryCN);
                     makePrepList();
                 }
                 else { }
             }
             else if (!negativeEntry) {
-                setInventoryCookie(inventory, 'inventory');
+                setInventoryCookie(inventory, inventoryCN);
                 makePrepList();
             }
         });
