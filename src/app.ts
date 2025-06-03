@@ -247,7 +247,7 @@ function displayExtraEnd(extraPrepList: PrepItem[]){
     const timeStr =  `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
     const user = getCookie('userName');
     
-    let dbRef = firebase.database().ref(`/Prep Record//${location}${todayStr}`);
+    let dbRef = firebase.database().ref(`/Prep Record/${location}/${todayStr}`);
     dbRef.set(finalPrepProgress);
     dbRef.update({'user': user});
     dbRef.update({'time': timeStr});
