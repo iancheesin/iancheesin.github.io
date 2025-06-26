@@ -762,6 +762,23 @@ async function getSalesHoursJson(location: string = 'Norcross'): Promise<string>
     return jsonStrItems;
 }
 
+async function getAllSalesHoursJson(): Promise<string> {
+    let dbRef = firebase.database().ref();
+    let jsonStrItems = '';
+    await dbRef.child('Sales and Hours').get().then( (snapshot) => {
+        if (snapshot.exists()) {
+            // console.log(`Sales & Hours JSON in getSalesHoursJson:`);
+            // console.log(JSON.stringify(snapshot.val()));
+            jsonStrItems = JSON.stringify(snapshot.val());
+        } else {
+            console.log('No data available');
+        }
+    }).catch((error) => {
+        console.log(`Whoops! Error in getSalesHoursJson: ${error}`);
+    });
+    return jsonStrItems;
+}
+
 //TODO: for Ian, describe what this function is doing with firebase
 //1. on submission of the User Info Form, checks that the user has input their name
 //2. checks if there is a previously saved inventory and, if so, asks the user if they would like to use that
@@ -926,6 +943,7 @@ function setSpreadsheetDataCookies(data: string[]) {
 
     if(false) {
         onLoad();
+        onLoadGmPage();
         // getSpreadsheetData();
     }
 }
@@ -934,6 +952,36 @@ function onLoad(){
     const locations: string[] = getLocations();
     userInfo(locations, 'body');
     collectInfo();
+}
+
+async function onLoadGmPage() {
+    const locations: string[] = getLocations();
+    const salesHours: string = await getAllSalesHoursJson();
+    createSalesHoursTable(locations, salesHours, 'id string...');
+
+}
+
+function createSalesHoursTable(locations: string[], salesHours: string, id: string){ //Started on 6/26. I need to make a table with all of the locations and their sales and prep hours, all of which are editable, and a submit button then a handler function for that button which will store the info
+    console.log(salesHours);
+    
+    let completeHTML: string = '';
+    let locationOptions: string = '';
+    const nameLabel: string = `<label for="nameInput">First Name</label><br>`;
+    const nameInput: string = '<input type="string" name="nameInput" id="nameInput"><br>';
+    const locationLabel: string = '<label for=locationInput">Location</label><br>';
+    locations.forEach ((location: string) => {
+        const newOption: string = `<option value="${location}">${location}</option>`
+        locationOptions += newOption;
+    })
+    const locationInput: string = `<select name="location" id="locationInput">${locationOptions}</select><br>`;
+    completeHTML = `<h1>Input User Info.</h1><form id="userInfoForm">${nameLabel}${nameInput}${locationLabel}${locationInput}<input type="submit" value="Submit" class="center"></form>`
+    const body: HTMLElement | null = document.getElementById(id);
+    if (body) {
+        body.innerHTML = completeHTML;
+    }
+    else {
+        console.log("userInfo did not find an HTML element where one was expected");
+    }
 }
 
 //**IMPORTANT** The following function(s) need(s) to be placed in the Code.gs file, not the JavaScript.html file
