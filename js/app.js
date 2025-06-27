@@ -93,6 +93,8 @@ function userInfo(locations, id) {
 async function inventoryForm(id) {
     let completeHTML = "";
     let items = getItems();
+    console.log("Item Array:");
+    console.log(items);
     items.forEach((Item) => {
         const label = `<label for="${Item.itemName}Input">${Item.batchUnitName}s of ${Item.itemName}</label><br>`;
         const input = `<input type="number" step="any" name="${Item.itemName}Input"><br>`;
@@ -575,12 +577,29 @@ async function getItemJson(location = 'Norcross') {
     }).catch((error) => {
         console.log(`Whoops! Error in getItemJson: ${error}`);
     });
+    console.log('JSON Items String:');
+    console.log(jsonStrItems);
     return jsonStrItems;
 }
 async function getSalesHoursJson(location = 'Norcross') {
     let dbRef = firebase.database().ref();
     let jsonStrItems = '';
     await dbRef.child('Sales and Hours').child(location).get().then((snapshot) => {
+        if (snapshot.exists()) {
+            jsonStrItems = JSON.stringify(snapshot.val());
+        }
+        else {
+            console.log('No data available');
+        }
+    }).catch((error) => {
+        console.log(`Whoops! Error in getSalesHoursJson: ${error}`);
+    });
+    return jsonStrItems;
+}
+async function getAllSalesHoursJson() {
+    let dbRef = firebase.database().ref();
+    let jsonStrItems = '';
+    await dbRef.child('Sales and Hours').get().then((snapshot) => {
         if (snapshot.exists()) {
             jsonStrItems = JSON.stringify(snapshot.val());
         }
@@ -681,7 +700,14 @@ function getItems(locationStr = '') {
         console.log(locationStr);
     }
     if (itemArrStr === undefined) {
-        return JSON.parse('error');
+        console.log('Whoops, the Item cookie failed! Using local storage instead :)');
+        let localStorageItemArr = localStorage.getItem('itemArr');
+        if (localStorageItemArr === null) {
+            return JSON.parse("\"error\"");
+        }
+        else {
+            return JSON.parse(localStorageItemArr);
+        }
     }
     else {
         return JSON.parse(itemArrStr);
@@ -710,6 +736,7 @@ function setSpreadsheetDataCookies(data) {
     document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     document.cookie = `itemArr=;expires=Fri, 12 Jan 2018`;
     document.cookie = `itemArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    localStorage.setItem("itemArr", data[1]);
     document.cookie = `todayPrepHours=;expires=Fri, 12 Jan 2018`;
     document.cookie = `todayPrepHours=${data[2]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     document.cookie = `tomorrowSales=;expires=Fri, 12 Jan 2018`;
@@ -718,12 +745,39 @@ function setSpreadsheetDataCookies(data) {
     document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     if (false) {
         onLoad();
+        onLoadGmPage();
     }
 }
 function onLoad() {
     const locations = getLocations();
     userInfo(locations, 'body');
     collectInfo();
+}
+async function onLoadGmPage() {
+    const locations = getLocations();
+    const salesHours = await getAllSalesHoursJson();
+    createSalesHoursTable(locations, salesHours, 'id string...');
+}
+function createSalesHoursTable(locations, salesHours, id) {
+    console.log(salesHours);
+    let completeHTML = '';
+    let locationOptions = '';
+    const nameLabel = `<label for="nameInput">First Name</label><br>`;
+    const nameInput = '<input type="string" name="nameInput" id="nameInput"><br>';
+    const locationLabel = '<label for=locationInput">Location</label><br>';
+    locations.forEach((location) => {
+        const newOption = `<option value="${location}">${location}</option>`;
+        locationOptions += newOption;
+    });
+    const locationInput = `<select name="location" id="locationInput">${locationOptions}</select><br>`;
+    completeHTML = `<h1>Input User Info.</h1><form id="userInfoForm">${nameLabel}${nameInput}${locationLabel}${locationInput}<input type="submit" value="Submit" class="center"></form>`;
+    const body = document.getElementById(id);
+    if (body) {
+        body.innerHTML = completeHTML;
+    }
+    else {
+        console.log("userInfo did not find an HTML element where one was expected");
+    }
 }
 async function getFirebaseData(locationStr = '') {
     const salesArr = JSON.parse(await getSalesHoursJson());

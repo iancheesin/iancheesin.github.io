@@ -164,6 +164,8 @@ function userInfo(locations: string[], id: string){
 async function inventoryForm (id: string){
     let completeHTML: string = "";
     let items: Item[] = getItems();
+    console.log("Item Array:");
+    console.log(items);
     items.forEach ((Item) => {
         const label: string = `<label for="${Item.itemName}Input">${Item.batchUnitName}s of ${Item.itemName}</label><br>`;
         const input: string = `<input type="number" step="any" name="${Item.itemName}Input"><br>`;
@@ -742,6 +744,8 @@ async function getItemJson(location: string = 'Norcross'): Promise<string> {
     }).catch((error) => {
         console.log(`Whoops! Error in getItemJson: ${error}`);
     });
+    console.log('JSON Items String:')
+    console.log(jsonStrItems);
     return jsonStrItems;
 }
 
@@ -880,7 +884,15 @@ function getItems(locationStr: string = ''): Item[] {
     let itemArrStr = getCookie('itemArr');
     if(false) { console.log(locationStr); }
     if(itemArrStr === undefined) {
-        return JSON.parse('error');
+        console.log('Whoops, the Item cookie failed! Using local storage instead :)');
+        let localStorageItemArr = localStorage.getItem('itemArr');
+        if(localStorageItemArr === null) {
+            return JSON.parse("\"error\"")
+        } 
+        else {
+            return JSON.parse(localStorageItemArr);
+        }
+        //return JSON.parse("\"error\"");
     } else {
         return JSON.parse(itemArrStr);
     }
@@ -922,6 +934,7 @@ function setSpreadsheetDataCookies(data: string[]) {
     document.cookie=`itemArr=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `itemArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    localStorage.setItem("itemArr",data[1]);
 
     //store today prep hours data
     //1. delete the old cookie, if it exists
