@@ -698,51 +698,81 @@ function getItems(locationStr = '') {
     let itemArrStr = getCookie('itemArr');
     if (false) {
         console.log(locationStr);
+        console.log(itemArrStr);
     }
-    if (itemArrStr === undefined) {
-        console.log('Whoops, the Item cookie failed! Using local storage instead :)');
-        let localStorageItemArr = localStorage.getItem('itemArr');
-        if (localStorageItemArr === null) {
-            return JSON.parse("\"error\"");
-        }
-        else {
-            return JSON.parse(localStorageItemArr);
-        }
+    ;
+    let localStorageItemArr = localStorage.getItem('itemArr');
+    if (localStorageItemArr === null) {
+        console.log(`Error in getItems`);
+        return JSON.parse("\"error\"");
     }
     else {
-        return JSON.parse(itemArrStr);
+        return JSON.parse(localStorageItemArr);
     }
 }
 function getPrepHours(locationStr = '') {
+    let prepHoursStr = getCookie('todayPrepHours');
     if (false) {
         console.log(locationStr);
+        console.log(prepHoursStr);
     }
-    return Number(getCookie('todayPrepHours'));
+    ;
+    let localStoragePrepHours = localStorage.getItem('todayPrepHours');
+    if (localStoragePrepHours === null) {
+        console.log(`Error in getPrepHours`);
+        return JSON.parse("\"error\"");
+    }
+    else {
+        return JSON.parse(localStoragePrepHours);
+    }
 }
 function getTomorrowSales(locationStr = '') {
+    let tomorrowSalesStr = getCookie('tomorrowSales');
     if (false) {
         console.log(locationStr);
+        console.log(tomorrowSalesStr);
     }
-    return Number(getCookie('tomorrowSales'));
+    ;
+    let localStorageTomorrowSales = localStorage.getItem('tomorrowSales');
+    if (localStorageTomorrowSales === null) {
+        console.log(`Error in getTomorrowSales`);
+        return JSON.parse("\"error\"");
+    }
+    else {
+        return JSON.parse(localStorageTomorrowSales);
+    }
 }
 function getThisWeekSales(locationStr = '') {
+    let thisWeekSalesStr = getCookie('tomorrowSales');
     if (false) {
         console.log(locationStr);
+        console.log(thisWeekSalesStr);
     }
-    return Number(getCookie('thisWeekSales'));
+    ;
+    let localStorageThisWeekSales = localStorage.getItem('thisWeekSales');
+    if (localStorageThisWeekSales === null) {
+        console.log(`Error in getThisWeekSales`);
+        return JSON.parse("\"error\"");
+    }
+    else {
+        return JSON.parse(localStorageThisWeekSales);
+    }
 }
 function setSpreadsheetDataCookies(data) {
     document.cookie = `salesHoursArr=;expires=Fri, 12 Jan 2018`;
     document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};Partitioned;SameSite=none; secure`;
     document.cookie = `itemArr=;expires=Fri, 12 Jan 2018`;
     document.cookie = `itemArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
-    localStorage.setItem("itemArr", data[1]);
+    localStorage.setItem('itemArr', data[1]);
     document.cookie = `todayPrepHours=;expires=Fri, 12 Jan 2018`;
     document.cookie = `todayPrepHours=${data[2]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    localStorage.setItem('todayPrepHours', data[2]);
     document.cookie = `tomorrowSales=;expires=Fri, 12 Jan 2018`;
     document.cookie = `tomorrowSales=${data[3]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    localStorage.setItem('tomorrowSales', data[3]);
     document.cookie = `thisWeekSales=;expires=Fri, 12 Jan 2018`;
     document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    localStorage.setItem('thisWeekSales', data[4]);
     if (false) {
         onLoad();
         onLoadGmPage();

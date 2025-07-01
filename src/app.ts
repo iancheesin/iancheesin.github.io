@@ -882,7 +882,16 @@ function collectInventory(){
 
 function getItems(locationStr: string = ''): Item[] {
     let itemArrStr = getCookie('itemArr');
-    if(false) { console.log(locationStr); }
+    if(false) { console.log(locationStr); console.log(itemArrStr); };
+    let localStorageItemArr = localStorage.getItem('itemArr');
+    if(localStorageItemArr === null) {        
+        console.log(`Error in getItems`);
+        return JSON.parse("\"error\"");
+    } 
+    else {
+        return JSON.parse(localStorageItemArr);
+    }
+    /*
     if(itemArrStr === undefined) {
         console.log('Whoops, the Item cookie failed! Using local storage instead :)');
         let localStorageItemArr = localStorage.getItem('itemArr');
@@ -896,24 +905,61 @@ function getItems(locationStr: string = ''): Item[] {
     } else {
         return JSON.parse(itemArrStr);
     }
+        */
 }
 
 function getPrepHours(locationStr: string = ''): number{
+    let prepHoursStr = getCookie('todayPrepHours');
+    if(false) { console.log(locationStr); console.log(prepHoursStr); };
+    let localStoragePrepHours = localStorage.getItem('todayPrepHours');
+    if(localStoragePrepHours === null) {
+        console.log(`Error in getPrepHours`);
+        return JSON.parse("\"error\"");
+    } 
+    else {
+        return JSON.parse(localStoragePrepHours);
+    }
+    /*
     // console.log(getCookie('todayPrepHours'));
     if(false) { console.log(locationStr); }
     return Number(getCookie('todayPrepHours'));
+    */
 }
 
 function getTomorrowSales(locationStr: string = ''): number{ // TODO: Check if null/undefined and throw error
+    let tomorrowSalesStr = getCookie('tomorrowSales');
+    if(false) { console.log(locationStr); console.log(tomorrowSalesStr); };
+    let localStorageTomorrowSales = localStorage.getItem('tomorrowSales');
+    if(localStorageTomorrowSales === null) {
+        console.log(`Error in getTomorrowSales`);
+        return JSON.parse("\"error\"");
+    } 
+    else {
+        return JSON.parse(localStorageTomorrowSales);
+    }
+    /*
     // console.log(getCookie('tomorrowSales'));
     if(false) { console.log(locationStr); }
     return Number(getCookie('tomorrowSales'));
+    */
 }
 
 function getThisWeekSales(locationStr: string = ''): number{
+    let thisWeekSalesStr = getCookie('tomorrowSales');
+    if(false) { console.log(locationStr); console.log(thisWeekSalesStr); };
+    let localStorageThisWeekSales = localStorage.getItem('thisWeekSales');
+    if(localStorageThisWeekSales === null) {
+        console.log(`Error in getThisWeekSales`);
+        return JSON.parse("\"error\"");
+    } 
+    else {
+        return JSON.parse(localStorageThisWeekSales);
+    }
+    /*
     // console.log(getCookie('thisWeekSales'));
     if(false) { console.log(locationStr); }
     return Number(getCookie('thisWeekSales'));
+    */
 }
 
 function setSpreadsheetDataCookies(data: string[]) {
@@ -934,25 +980,28 @@ function setSpreadsheetDataCookies(data: string[]) {
     document.cookie=`itemArr=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `itemArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
-    localStorage.setItem("itemArr",data[1]);
+    localStorage.setItem('itemArr',data[1]);
 
     //store today prep hours data
     //1. delete the old cookie, if it exists
     document.cookie=`todayPrepHours=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `todayPrepHours=${data[2]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    localStorage.setItem('todayPrepHours',data[2]);
 
     //store tomorrow sales data
     //1. delete the old cookie, if it exists
     document.cookie=`tomorrowSales=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `tomorrowSales=${data[3]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    localStorage.setItem('tomorrowSales',data[3]);
 
     //store this week sales data
     //1. delete the old cookie, if it exists
     document.cookie=`thisWeekSales=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    localStorage.setItem('thisWeekSales',data[4]);
 
     if(false) {
         onLoad();
