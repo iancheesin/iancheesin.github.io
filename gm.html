@@ -1,14 +1,43 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-  <base target="_top">
-  <title>Prep Calculator</title>
-</head>
+  <head>
+    <base target="_top">
+    <title>Prep Calculator</title>
+  </head>
 
-<body id="body" onload="onLoadGmPage()">
+  <body id="body" onload="onLoadGmPage()">
+    <div id="locationInfoEditor"></div>
     <p>Hmmmm...</p>
+    <table id="hoursSalesEditorTable"> 
+    </table>
     
+
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>
+
+    <!-- TODO: Add SDKs for Firebase products that you want to use
+    https://firebase.google.com/docs/web/setup#available-libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-database.js"></script>
+    <script>
+      // Your web app's Firebase configuration
+      // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+      var firebaseConfig = {
+          apiKey: "AIzaSyCwiCeFfXUlpQbeMC-TQMS7akXn-3Dz4XM",
+        authDomain: "prep-calculator.firebaseapp.com",
+        projectId: "prep-calculator",
+        storageBucket: "prep-calculator.firebasestorage.app",
+        messagingSenderId: "203870862455",
+        appId: "1:203870862455:web:080a4a57dc393d3ca81a72",
+        measurementId: "G-G326NG3689"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+    </script>
+
     <script src='./js/app.js'></script>
-</body>
+  </body>
 

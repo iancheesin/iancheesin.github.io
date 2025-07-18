@@ -20,6 +20,10 @@ type SalesHoursObj = {
     'Prep Hours': number;
 }
 
+// type AllSalesHoursObj = {
+//     [key: string]: SalesHoursObj[];
+// }
+
 class PrepItem {
     itemName: string;
     batchUnitName: string;
@@ -1006,6 +1010,7 @@ function setSpreadsheetDataCookies(data: string[]) {
     if(false) {
         onLoad();
         onLoadGmPage();
+        collectGmInfo();
         // getSpreadsheetData();
     }
 }
@@ -1019,11 +1024,13 @@ function onLoad(){
 async function onLoadGmPage() {
     const locations: string[] = getLocations();
     const salesHours: string = await getAllSalesHoursJson();
-    createSalesHoursTable(locations, salesHours, 'id string...');
+    createSalesHoursTable(locations, salesHours, 'locationInfoEditor');
+    //collectGmInfo();
 
 }
 
-function createSalesHoursTable(locations: string[], salesHours: string, id: string){ //Started on 6/26. I need to make a table with all of the locations and their sales and prep hours, all of which are editable, and a submit button then a handler function for that button which will store the info
+
+async function createSalesHoursTable(locations: string[], salesHours: string, id: string){ //Started on 6/26. I need to make a table with all of the locations and their sales and prep hours, all of which are editable, and a submit button then a handler function for that button which will store the info
     console.log(salesHours);
     
     let completeHTML: string = '';
@@ -1035,7 +1042,7 @@ function createSalesHoursTable(locations: string[], salesHours: string, id: stri
         const newOption: string = `<option value="${location}">${location}</option>`
         locationOptions += newOption;
     })
-    const locationInput: string = `<select name="location" id="locationInput">${locationOptions}</select><br>`;
+    const locationInput: string = `<select name="location" id="locationInput" multiple>${locationOptions}</select><br>`;
     completeHTML = `<h1>Input User Info.</h1><form id="userInfoForm">${nameLabel}${nameInput}${locationLabel}${locationInput}<input type="submit" value="Submit" class="center"></form>`
     const body: HTMLElement | null = document.getElementById(id);
     if (body) {
@@ -1043,6 +1050,122 @@ function createSalesHoursTable(locations: string[], salesHours: string, id: stri
     }
     else {
         console.log("userInfo did not find an HTML element where one was expected");
+    }
+
+    //Make 2d array with location columns and day rows and hours and sales as data
+    
+    // const hoursSalesArr: any[SalesHoursObj];
+
+    // const salesHoursObj: AllSalesHoursObj = JSON.parse(salesHours);
+    // console.log(salesHoursObj);
+    const salesTable: HTMLElement | null = document.getElementById('hoursSalesEditorTable');
+    let tableHtml = `<thead><tr><th scope="col"></th>`;
+    for(let i = 0; i < locations.length; i++) {
+        // hoursSalesArr[i] =  getThisWeekSalesArr(locations[i]);
+        console.log(await getThisWeekSalesArr(locations[i]));
+        let salesArr = await getThisWeekSalesArr(locations[i]);
+        if(i === 0) {
+            salesArr.forEach(day => {
+                console.log(day["Date"]);
+                tableHtml += `<th scope="col">${day["Date"]}</th>`;
+            });
+            tableHtml += `</tr></thead><tbody>`;
+        }
+        tableHtml += `<tr><th scope="row">${locations[i]}</th>`
+        salesArr.forEach(day => {
+            console.log(day["Date"]);
+            tableHtml += `<td scope="col"><div contenteditable>${day["Historical Sales"]}</div></td>`;
+        });
+        //tableHtml += `<th scope="col">${locations[i]}</th>`;
+        //<div contenteditable>I'm editable</div>
+    }
+
+    if(salesTable) {
+        salesTable.innerHTML = tableHtml;
+    }
+    else {
+        console.log("userInfo did not find an HTML element where one was expected");
+    }
+
+    // for(let i = 0; i <= 14; i++) {
+    //     if(i = 0) { //Add the header row
+    //         hoursSalesArr[i] = locations;
+    //         hoursSalesArr[i].unshift('');
+    //     }
+    //     else { //Add a data row
+    //         if(hoursSalesArr[i] === undefined) {
+    //             hoursSalesArr[i] = [];
+    //         }
+            
+
+    //     }
+    // }
+    // console.log(hoursSalesArr);
+
+    // const table: HTMLElement | null = document.getElementById('hoursSalesEditorTable');
+    // completeHTML = '';
+    // locations.forEach ((location: string) => {
+    //     const newOption: string = `<option value="${location}">${location}</option>`
+    //     locationOptions += newOption;
+    // });
+    
+}
+
+async function collectGmInfo(){
+    const form = document.getElementById('userInfoForm') as HTMLFormElement;
+    let body = document.getElementById('body');
+    if(form){
+        await form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            //1. check if the user has input a name
+            if (form.nameInput.value){
+                if (body !== null) {
+                    body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
+                }
+                setUserInfoCookie(form);
+
+                // //2. check for a saved prep list
+                // const hPF = getCookie(highPriorityFinishedCN);
+                // const hPU = getCookie(highPriorityUnfinishedCN);
+                // const lPS = getCookie(lowPrioritySelectedCN);
+                // const ePL = getCookie(extraPrepListCN);
+
+                // const highPriorityFinished = parseCookie(hPF,highPriorityFinishedCN);
+                // const highPriorityUnfinished = parseCookie(hPU,highPriorityUnfinishedCN);
+                // const lowPrioritySelected = parseCookie(lPS,lowPrioritySelectedCN);
+                // const extraPrepList = parseCookie(ePL,extraPrepListCN);
+
+                // const inventoryCookie = getCookie(inventoryCN);
+
+                
+                // let dataString = await getFirebaseData(getCookie('location'));
+                // // console.log(`Data string:`);
+                // // console.log(dataString);
+                // // console.log(`Item JSON in collectInfo: ${await getItemJson(getCookie('location'))}`);
+                // // console.log(`Sales & Hours JSON in collectInfo: ${await getSalesHoursJson(getCookie('location'))}`);
+                // setSpreadsheetDataCookies(dataString);
+                
+                // if (highPriorityFinished && confirm("A saved prep list was found. Do you want to use that preplist?")) {
+                //     displayPrepLists(highPriorityFinished, highPriorityUnfinished, lowPrioritySelected, extraPrepList);
+                // }else if (inventoryCookie && confirm("A previously submitted inventory was found. Do you want to use that inventory?")) {
+                //     //clear preplist progress if not using saved preplist
+                //     setInventoryCookie({},finalPrepProgressCN);
+                //     makePrepList();
+                // }else{
+                //     //clear preplist progress if not using saved preplist
+                //     setInventoryCookie({},finalPrepProgressCN);
+                //     //3. otherwise, have the user input a new inventory
+                //     inventoryForm('body');
+                //     collectInventory();
+                // }
+            }else if(!form.nameInput.value){
+                alert('Please input your name');
+            }else{
+                console.log('oh nooo From: collectInfo');
+            }
+        })
+    }else{
+        console.log('collectInfo did not find a form');
     }
 }
 
@@ -1112,8 +1235,56 @@ function createSalesHoursTable(locations: string[], salesHours: string, id: stri
 //       return JSON.stringify(result);
 // }
 
+async function getThisWeekSalesArr(locationStr: string): Promise<SalesHoursObj[]> {
+    const salesArr: SalesHoursObj[] | undefined = JSON.parse(await getSalesHoursJson(locationStr));
+    let thisWeekSalesArr: SalesHoursObj[] = [];
+    //get prep hours
+    const today: Date = new Date();
+    const todayStr: string = `${today.getMonth()+1}-${today.getDate()}-${today.getFullYear()}`;
+    let row: number = 0;
+    
+    // console.log(salesArr);
+
+    if(salesArr === undefined) {
+        console.log(`In getPrepHours; salesArr is undefined`);
+    }
+    else {
+        while( row < salesArr.length && String(salesArr[row]['Date']) !== todayStr) {
+            row++;
+        }
+   }
+    //get tomorrow sales
+    row = 0;
+
+    if(salesArr === undefined) {
+        console.log(`In getTomorrowSales; salesArr is undefined`);
+    } else {
+        while( row < salesArr.length && String(salesArr[row]['Date']) !== todayStr ) {
+            row++;
+        }
+        // console.log(`Todays date of ${todayStr} found at row ${row} with value ${salesArr[row]['Historical Sales']} dollars`);
+  }
+    
+    //calculate this week sales
+    row = 0;
+
+    if(salesArr === undefined) {
+        console.log(`In getThisWeekSales; salesArr is undefined`);
+    } else {
+        while( row < salesArr.length && String(salesArr[row]['Date']) !== todayStr ) {
+            row++;
+        }
+        for(let i = 1; i <= 7; i++) {
+            thisWeekSalesArr[i-1] = salesArr[row+i];
+        }
+    }
+
+    return thisWeekSalesArr;
+
+}
+
 async function getFirebaseData(locationStr: string = ''): Promise<string[]> {
-    const salesArr: SalesHoursObj[] | undefined = JSON.parse(await getSalesHoursJson());
+    const salesArr: SalesHoursObj[] | undefined = JSON.parse(await getSalesHoursJson(locationStr));
     let thisWeekSalesArr: SalesHoursObj[] = [];
     let todayPrepHours: number;
     let tomorrowSales: number;

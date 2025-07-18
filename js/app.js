@@ -776,6 +776,7 @@ function setSpreadsheetDataCookies(data) {
     if (false) {
         onLoad();
         onLoadGmPage();
+        collectGmInfo();
     }
 }
 function onLoad() {
@@ -786,9 +787,9 @@ function onLoad() {
 async function onLoadGmPage() {
     const locations = getLocations();
     const salesHours = await getAllSalesHoursJson();
-    createSalesHoursTable(locations, salesHours, 'id string...');
+    createSalesHoursTable(locations, salesHours, 'locationInfoEditor');
 }
-function createSalesHoursTable(locations, salesHours, id) {
+async function createSalesHoursTable(locations, salesHours, id) {
     console.log(salesHours);
     let completeHTML = '';
     let locationOptions = '';
@@ -799,7 +800,7 @@ function createSalesHoursTable(locations, salesHours, id) {
         const newOption = `<option value="${location}">${location}</option>`;
         locationOptions += newOption;
     });
-    const locationInput = `<select name="location" id="locationInput">${locationOptions}</select><br>`;
+    const locationInput = `<select name="location" id="locationInput" multiple>${locationOptions}</select><br>`;
     completeHTML = `<h1>Input User Info.</h1><form id="userInfoForm">${nameLabel}${nameInput}${locationLabel}${locationInput}<input type="submit" value="Submit" class="center"></form>`;
     const body = document.getElementById(id);
     if (body) {
@@ -808,9 +809,94 @@ function createSalesHoursTable(locations, salesHours, id) {
     else {
         console.log("userInfo did not find an HTML element where one was expected");
     }
+    const salesTable = document.getElementById('hoursSalesEditorTable');
+    let tableHtml = `<thead><tr><th scope="col"></th>`;
+    for (let i = 0; i < locations.length; i++) {
+        console.log(await getThisWeekSalesArr(locations[i]));
+        let salesArr = await getThisWeekSalesArr(locations[i]);
+        if (i === 0) {
+            salesArr.forEach(day => {
+                console.log(day["Date"]);
+                tableHtml += `<th scope="col">${day["Date"]}</th>`;
+            });
+            tableHtml += `</tr></thead><tbody>`;
+        }
+        tableHtml += `<tr><th scope="row">${locations[i]}</th>`;
+        salesArr.forEach(day => {
+            console.log(day["Date"]);
+            tableHtml += `<td scope="col"><div contenteditable>${day["Historical Sales"]}</div></td>`;
+        });
+    }
+    if (salesTable) {
+        salesTable.innerHTML = tableHtml;
+    }
+    else {
+        console.log("userInfo did not find an HTML element where one was expected");
+    }
+}
+async function collectGmInfo() {
+    const form = document.getElementById('userInfoForm');
+    let body = document.getElementById('body');
+    if (form) {
+        await form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (form.nameInput.value) {
+                if (body !== null) {
+                    body.innerHTML = `<p id="loading">Loading</p><div class="loader"></div>`;
+                }
+                setUserInfoCookie(form);
+            }
+            else if (!form.nameInput.value) {
+                alert('Please input your name');
+            }
+            else {
+                console.log('oh nooo From: collectInfo');
+            }
+        });
+    }
+    else {
+        console.log('collectInfo did not find a form');
+    }
+}
+async function getThisWeekSalesArr(locationStr) {
+    const salesArr = JSON.parse(await getSalesHoursJson(locationStr));
+    let thisWeekSalesArr = [];
+    const today = new Date();
+    const todayStr = `${today.getMonth() + 1}-${today.getDate()}-${today.getFullYear()}`;
+    let row = 0;
+    if (salesArr === undefined) {
+        console.log(`In getPrepHours; salesArr is undefined`);
+    }
+    else {
+        while (row < salesArr.length && String(salesArr[row]['Date']) !== todayStr) {
+            row++;
+        }
+    }
+    row = 0;
+    if (salesArr === undefined) {
+        console.log(`In getTomorrowSales; salesArr is undefined`);
+    }
+    else {
+        while (row < salesArr.length && String(salesArr[row]['Date']) !== todayStr) {
+            row++;
+        }
+    }
+    row = 0;
+    if (salesArr === undefined) {
+        console.log(`In getThisWeekSales; salesArr is undefined`);
+    }
+    else {
+        while (row < salesArr.length && String(salesArr[row]['Date']) !== todayStr) {
+            row++;
+        }
+        for (let i = 1; i <= 7; i++) {
+            thisWeekSalesArr[i - 1] = salesArr[row + i];
+        }
+    }
+    return thisWeekSalesArr;
 }
 async function getFirebaseData(locationStr = '') {
-    const salesArr = JSON.parse(await getSalesHoursJson());
+    const salesArr = JSON.parse(await getSalesHoursJson(locationStr));
     let thisWeekSalesArr = [];
     let todayPrepHours;
     let tomorrowSales;
