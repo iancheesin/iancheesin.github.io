@@ -1,4 +1,4 @@
-
+import firebase from "firebase/compat/app";
 const finalPrepProgressCN = 'finalPrepProgress';
 const inventoryCN = 'inventory';
 const highPriorityFinishedCN = 'hPF';
@@ -63,18 +63,18 @@ function midnight() {
     return midnight;
 }
 function setInventoryCookie(newInventory, name) {
-    document.cookie = `${name}=;expires=Fri, 12 Jan 2018;`;
+    document.cookie = `${name}=;expires=Fri, 12 Jan 2018 12:00:00 UTC;`;
     document.cookie = `${name}=${JSON.stringify(newInventory)};expires=${midnight()};`;
 }
 function setUserInfoCookie(form) {
-    document.cookie = "userName=;expires=Fri, 12 Jan 2018";
-    document.cookie = "location=;expires=Fri, 12 Jan 2018";
+    document.cookie = "userName=;expires=Fri, 12 Jan 2018 12:00:00 UTC";
+    document.cookie = "location=;expires=Fri, 12 Jan 2018 12:00:00 UTC";
     document.cookie = `userName=${form.nameInput.value};expires=Fri, 1 Jan 2100`;
     document.cookie = `location=${form.locationInput.value};expires=Fri, 1 Jan 2100;`;
     console.log(`User info cookie set with location ${form.locationInput.value}`);
 }
 function setPrepListCookie(prepList, name) {
-    document.cookie = `${name}=;expires=Fri, 12 Jan 2018`;
+    document.cookie = `${name}=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     document.cookie = `${name}=${JSON.stringify(prepList)};expires=${midnight()};`;
 }
 function getLocations() {
@@ -762,18 +762,18 @@ function getThisWeekSales(locationStr = '') {
     }
 }
 function setSpreadsheetDataCookies(data) {
-    document.cookie = `salesHoursArr=;expires=Fri, 12 Jan 2018`;
+    document.cookie = `salesHoursArr=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};`;
-    document.cookie = `itemArr=;expires=Fri, 12 Jan 2018`;
+    document.cookie = `itemArr=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     document.cookie = `itemArr=${data[1]};expires=${midnight()};`;
     localStorage.setItem('itemArr', data[1]);
-    document.cookie = `todayPrepHours=;expires=Fri, 12 Jan 2018`;
+    document.cookie = `todayPrepHours=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     document.cookie = `todayPrepHours=${data[2]};expires=${midnight()};`;
     localStorage.setItem('todayPrepHours', data[2]);
-    document.cookie = `tomorrowSales=;expires=Fri, 12 Jan 2018`;
+    document.cookie = `tomorrowSales=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     document.cookie = `tomorrowSales=${data[3]};expires=${midnight()};`;
     localStorage.setItem('tomorrowSales', data[3]);
-    document.cookie = `thisWeekSales=;expires=Fri, 12 Jan 2018`;
+    document.cookie = `thisWeekSales=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};`;
     localStorage.setItem('thisWeekSales', data[4]);
     if (false) {

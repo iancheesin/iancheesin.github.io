@@ -114,7 +114,7 @@ function midnight(){
 //name is the name that the cookie will be saved under
 function setInventoryCookie(newInventory: Record<string, number>, name:string){
     //delete old cookie
-    document.cookie=`${name}=;expires=Fri, 12 Jan 2018;`;
+    document.cookie=`${name}=;expires=Fri, 12 Jan 2018 12:00:00 UTC;`;
     //save new cookie
     document.cookie = `${name}=${JSON.stringify(newInventory)};expires=${midnight()};`;
 }
@@ -127,8 +127,8 @@ function setUserInfoCookie(form: HTMLFormElement){
     
 
     //delete old cookies
-    document.cookie="userName=;expires=Fri, 12 Jan 2018";
-    document.cookie="location=;expires=Fri, 12 Jan 2018";
+    document.cookie="userName=;expires=Fri, 12 Jan 2018 12:00:00 UTC";
+    document.cookie="location=;expires=Fri, 12 Jan 2018 12:00:00 UTC";
     //save new cookies
     document.cookie = `userName=${form.nameInput.value};expires=Fri, 1 Jan 2100`;
     document.cookie = `location=${form.locationInput.value};expires=Fri, 1 Jan 2100;`;
@@ -139,7 +139,7 @@ function setUserInfoCookie(form: HTMLFormElement){
 //name is the name that the cookie will be saved under
 function setPrepListCookie(prepList: PrepItem[], name:string){
     //delete old cookie
-    document.cookie=`${name}=;expires=Fri, 12 Jan 2018`;
+    document.cookie=`${name}=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     //save new cookie
     document.cookie = `${name}=${JSON.stringify(prepList)};expires=${midnight()};`;
 }
@@ -969,35 +969,35 @@ function setSpreadsheetDataCookies(data: string[]) {
 
     //Store full sales & hours data JSON
     //1. delete the old cookie, if it exists
-    document.cookie=`salesHoursArr=;expires=Fri, 12 Jan 2018`;
+    document.cookie=`salesHoursArr=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};`;
     //TODO: for some reason the sales hours array is saving as data[0] in the coookie...
     
     //store item JSON
     //1. delete the old cookie, if it exists
-    document.cookie=`itemArr=;expires=Fri, 12 Jan 2018`;
+    document.cookie=`itemArr=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `itemArr=${data[1]};expires=${midnight()};`;
     localStorage.setItem('itemArr',data[1]);
 
     //store today prep hours data
     //1. delete the old cookie, if it exists
-    document.cookie=`todayPrepHours=;expires=Fri, 12 Jan 2018`;
+    document.cookie=`todayPrepHours=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `todayPrepHours=${data[2]};expires=${midnight()};`;
     localStorage.setItem('todayPrepHours',data[2]);
 
     //store tomorrow sales data
     //1. delete the old cookie, if it exists
-    document.cookie=`tomorrowSales=;expires=Fri, 12 Jan 2018`;
+    document.cookie=`tomorrowSales=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `tomorrowSales=${data[3]};expires=${midnight()};`;
     localStorage.setItem('tomorrowSales',data[3]);
 
     //store this week sales data
     //1. delete the old cookie, if it exists
-    document.cookie=`thisWeekSales=;expires=Fri, 12 Jan 2018`;
+    document.cookie=`thisWeekSales=;expires=Fri, 12 Jan 2018 12:00:00 UTC`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
     document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};`;
     localStorage.setItem('thisWeekSales',data[4]);
