@@ -114,21 +114,24 @@ function midnight(){
 //name is the name that the cookie will be saved under
 function setInventoryCookie(newInventory: Record<string, number>, name:string){
     //delete old cookie
-    document.cookie=`${name}=;expires=Fri, 12 Jan 2018`;
+    document.cookie=`${name}=;expires=Fri, 12 Jan 2018;`;
     //save new cookie
-    document.cookie = `${name}=${JSON.stringify(newInventory)};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `${name}=${JSON.stringify(newInventory)};expires=${midnight()};`;
 }
 
 //user cookies do not expire automatically
 //there are two user cookies: the user's name and the user's location
 //form is the form where the user is submitting their info.
 function setUserInfoCookie(form: HTMLFormElement){
+
+    
+
     //delete old cookies
     document.cookie="userName=;expires=Fri, 12 Jan 2018";
     document.cookie="location=;expires=Fri, 12 Jan 2018";
     //save new cookies
-    document.cookie = `userName=${form.nameInput.value};expires=Fri, 1 Jan 2100;Partitioned;SameSite=none; secure`;
-    document.cookie = `location=${form.locationInput.value};expires=Fri, 1 Jan 2100;Partitioned;SameSite=none; secure`;
+    document.cookie = `userName=${form.nameInput.value};expires=Fri, 1 Jan 2100`;
+    document.cookie = `location=${form.locationInput.value};expires=Fri, 1 Jan 2100;`;
     console.log(`User info cookie set with location ${form.locationInput.value}`);
 }
 
@@ -138,7 +141,7 @@ function setPrepListCookie(prepList: PrepItem[], name:string){
     //delete old cookie
     document.cookie=`${name}=;expires=Fri, 12 Jan 2018`;
     //save new cookie
-    document.cookie = `${name}=${JSON.stringify(prepList)};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `${name}=${JSON.stringify(prepList)};expires=${midnight()};`;
 }
 
 //parses and returns an array of location names from a hardcoded json string
@@ -968,35 +971,35 @@ function setSpreadsheetDataCookies(data: string[]) {
     //1. delete the old cookie, if it exists
     document.cookie=`salesHoursArr=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
-    document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `salesHoursArr=${data[0]};expires=${midnight()};`;
     //TODO: for some reason the sales hours array is saving as data[0] in the coookie...
     
     //store item JSON
     //1. delete the old cookie, if it exists
     document.cookie=`itemArr=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
-    document.cookie = `itemArr=${data[1]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `itemArr=${data[1]};expires=${midnight()};`;
     localStorage.setItem('itemArr',data[1]);
 
     //store today prep hours data
     //1. delete the old cookie, if it exists
     document.cookie=`todayPrepHours=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
-    document.cookie = `todayPrepHours=${data[2]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `todayPrepHours=${data[2]};expires=${midnight()};`;
     localStorage.setItem('todayPrepHours',data[2]);
 
     //store tomorrow sales data
     //1. delete the old cookie, if it exists
     document.cookie=`tomorrowSales=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
-    document.cookie = `tomorrowSales=${data[3]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `tomorrowSales=${data[3]};expires=${midnight()};`;
     localStorage.setItem('tomorrowSales',data[3]);
 
     //store this week sales data
     //1. delete the old cookie, if it exists
     document.cookie=`thisWeekSales=;expires=Fri, 12 Jan 2018`;
     //2. create a new inventory cookie, which should be just one cookie storing a Record
-    document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};Partitioned;SameSite=none; secure`;
+    document.cookie = `thisWeekSales=${data[4]};expires=${midnight()};`;
     localStorage.setItem('thisWeekSales',data[4]);
 
     if(false) {
