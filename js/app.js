@@ -783,6 +783,20 @@ function setSpreadsheetDataCookies(data) {
 }
 function onLoad() {
     const locations = getLocations();
+    window.addEventListener('error', (event) => {
+        const now = new Date();
+        const todayStr = `${now.getMonth() + 1}-${now.getDate()}-${now.getFullYear()}`;
+        const timeStr = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds() > 9 ? '' : '0'}${now.getSeconds()}`;
+        let dbRef = firebase.database().ref(`/errors/${todayStr}/${timeStr}`);
+        let error = {
+            message: event.message,
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+            error: event.error,
+        };
+        dbRef.set(error);
+    });
     userInfo(locations, 'body');
     collectInfo();
 }
