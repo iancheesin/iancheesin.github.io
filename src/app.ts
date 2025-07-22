@@ -38,8 +38,16 @@ class PrepItem {
         this.itemName = itemName;
         this.batchUnitName = batchUnitName;
         this.batchTimeMinutes = batchTimeMinutes;
-        this.prepThisWeek = prepThisWeek;
-        this.prepTomorrow = prepTomorrow;
+        if(prepThisWeek <= 0) {
+            this.prepThisWeek = 0;
+        } else {
+            this.prepThisWeek = prepThisWeek;
+        }
+        if(prepTomorrow <= 0) {
+            this.prepTomorrow = 0;
+        } else {
+            this.prepTomorrow = prepTomorrow;
+        }
         this.finishedItemBool = finishedItemBool;
         this.totalBatchTime = roundToNearestTenth(this.batchTimeMinutes * this.prepThisWeek);
         this.ingredients = ingredients;
