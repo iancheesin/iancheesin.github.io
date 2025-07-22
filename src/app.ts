@@ -129,6 +129,7 @@ function setUserInfoCookie(form: HTMLFormElement){
     //save new cookies
     document.cookie = `userName=${form.nameInput.value};expires=Fri, 1 Jan 2100;Partitioned;SameSite=none; secure`;
     document.cookie = `location=${form.locationInput.value};expires=Fri, 1 Jan 2100;Partitioned;SameSite=none; secure`;
+    console.log(`User info cookie set with location ${form.locationInput.value}`);
 }
 
 //prepList is an array of PrepItems to be saved
