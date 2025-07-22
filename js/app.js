@@ -1,4 +1,4 @@
-
+import firebase from "firebase/compat/app";
 const finalPrepProgressCN = 'finalPrepProgress';
 const inventoryCN = 'inventory';
 const highPriorityFinishedCN = 'hPF';
@@ -355,6 +355,8 @@ function sortPrepListByFinished(prepList) {
     const unfinished = [];
     const finished = [];
     prepList.forEach((PrepItem) => {
+        console.log('In sortPrepListByFinished, current PrepItem is:');
+        console.log(PrepItem);
         if (PrepItem.finishedItemBool === true) {
             finished.push(PrepItem);
         }

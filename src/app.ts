@@ -483,6 +483,8 @@ function sortPrepListByFinished(prepList: PrepItem[]):[PrepItem[],PrepItem[]]{
     const unfinished: PrepItem[] = [];
     const finished: PrepItem[] = [];
     prepList.forEach((PrepItem) => {
+        console.log('In sortPrepListByFinished, current PrepItem is:');
+        console.log(PrepItem);
         if(PrepItem.finishedItemBool === true){
             finished.push(PrepItem);
         }
