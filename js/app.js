@@ -1,4 +1,4 @@
-
+import firebase from "firebase/compat/app";
 const finalPrepProgressCN = 'finalPrepProgress';
 const inventoryCN = 'inventory';
 const highPriorityFinishedCN = 'hPF';
@@ -583,6 +583,7 @@ async function getItemJson(location = 'Norcross') {
     return jsonStrItems;
 }
 async function getSalesHoursJson(location = 'Norcross') {
+    console.log(`In getSalesHoursJson, location string is: ${location}`);
     let dbRef = firebase.database().ref();
     let jsonStrItems = '';
     await dbRef.child('Sales and Hours').child(location).get().then((snapshot) => {

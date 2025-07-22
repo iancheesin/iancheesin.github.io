@@ -752,6 +752,7 @@ async function getItemJson(location: string = 'Norcross'): Promise<string> {
 }
 
 async function getSalesHoursJson(location: string = 'Norcross'): Promise<string> {
+    console.log(`In getSalesHoursJson, location string is: ${location}`);
     let dbRef = firebase.database().ref();
     let jsonStrItems = '';
     await dbRef.child('Sales and Hours').child(location).get().then( (snapshot) => {
