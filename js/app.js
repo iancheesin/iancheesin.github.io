@@ -6,7 +6,7 @@ const highPriorityUnfinishedCN = 'hPU';
 const lowPrioritySelectedCN = 'lPS';
 const extraPrepListCN = 'ePL';
 class PrepItem {
-    constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients) {
+    constructor(itemName, batchUnitName, batchTimeMinutes, prepThisWeek, prepTomorrow, finishedItemBool, ingredients = []) {
         this.itemName = itemName;
         this.batchUnitName = batchUnitName;
         this.batchTimeMinutes = batchTimeMinutes;
@@ -93,8 +93,6 @@ function userInfo(locations, id) {
 async function inventoryForm(id) {
     let completeHTML = "";
     let items = getItems();
-    console.log("Item Array:");
-    console.log(items);
     items.forEach((Item) => {
         const label = `<label for="${Item.itemName}Input">${Item.batchUnitName}s of ${Item.itemName}</label><br>`;
         const input = `<input type="number" step="any" name="${Item.itemName}Input"><br>`;
@@ -355,8 +353,6 @@ function sortPrepListByFinished(prepList) {
     const unfinished = [];
     const finished = [];
     prepList.forEach((PrepItem) => {
-        console.log('In sortPrepListByFinished, current PrepItem is:');
-        console.log(PrepItem);
         if (PrepItem.finishedItemBool === true) {
             finished.push(PrepItem);
         }
@@ -449,16 +445,15 @@ function makePrepList() {
         if (PrepItem.finishedItemBool !== undefined) {
             if (PrepItem.ingredients !== undefined) {
                 PrepItem.ingredients.forEach((ingredient) => {
-                    const ingredientIndexHp = lowPriority.findIndex(obj => obj.itemName === ingredient);
-                    if (ingredientIndexHp > -1) {
-                        let ingredientItem = highPriority.splice(ingredientIndexHp, 1)[0];
-                        console.log(`Adding ingredient to high priority list: ${ingredient}`);
+                    const ingredientIndexLp = lowPriority.findIndex(obj => obj.itemName === ingredient);
+                    if (ingredientIndexLp > -1) {
+                        let ingredientItem = lowPriority.splice(ingredientIndexLp, 1)[0];
                         highPriority.push(ingredientItem);
                     }
                     else {
-                        let ingredientIndexLp = dontPrep.findIndex(obj => obj.itemName === ingredient);
-                        if (ingredientIndexLp > -1) {
-                            let ingredientItem = lowPriority.splice(ingredientIndexLp, 1)[0];
+                        let ingredientIndexDp = dontPrep.findIndex(obj => obj.itemName === ingredient);
+                        if (ingredientIndexDp > -1) {
+                            let ingredientItem = dontPrep.splice(ingredientIndexDp, 1)[0];
                             highPriority.push(ingredientItem);
                         }
                         else { }
@@ -538,10 +533,6 @@ function displayPrepLists(highPriorityFinished = [], highPriorityUnfinished, low
                 if (finalPrepProgress[finalPrepList[x].itemName] < finalPrepList[x].prepTomorrow) {
                     belowMin = true;
                 }
-                console.log(finalPrepProgress[finalPrepList[x].itemName]);
-                console.log(finalPrepList[x].prepTomorrow);
-                console.log(finalPrepList[x].itemName);
-                console.log(belowMin);
             }
             for (let x = 0; x < finalPrepList.length; x++) {
                 if (finalPrepProgress[finalPrepList[x].itemName] > finalPrepList[x].prepThisWeek) {
@@ -579,8 +570,6 @@ async function getItemJson(location = 'Norcross') {
     }).catch((error) => {
         console.log(`Whoops! Error in getItemJson: ${error}`);
     });
-    console.log('JSON Items String:');
-    console.log(jsonStrItems);
     return jsonStrItems;
 }
 async function getSalesHoursJson(location = 'Norcross') {
@@ -792,7 +781,9 @@ async function onLoadGmPage() {
     createSalesHoursTable(locations, salesHours, 'locationInfoEditor');
 }
 async function createSalesHoursTable(locations, salesHours, id) {
-    console.log(salesHours);
+    if (false) {
+        console.log(salesHours);
+    }
     let completeHTML = '';
     let locationOptions = '';
     const nameLabel = `<label for="nameInput">First Name</label><br>`;
@@ -814,18 +805,15 @@ async function createSalesHoursTable(locations, salesHours, id) {
     const salesTable = document.getElementById('hoursSalesEditorTable');
     let tableHtml = `<thead><tr><th scope="col"></th>`;
     for (let i = 0; i < locations.length; i++) {
-        console.log(await getThisWeekSalesArr(locations[i]));
         let salesArr = await getThisWeekSalesArr(locations[i]);
         if (i === 0) {
             salesArr.forEach(day => {
-                console.log(day["Date"]);
                 tableHtml += `<th scope="col">${day["Date"]}</th>`;
             });
             tableHtml += `</tr></thead><tbody>`;
         }
         tableHtml += `<tr><th scope="row">${locations[i]}</th>`;
         salesArr.forEach(day => {
-            console.log(day["Date"]);
             tableHtml += `<td scope="col"><div contenteditable>${day["Historical Sales"]}</div></td>`;
         });
     }
@@ -914,7 +902,6 @@ async function getFirebaseData(locationStr = '') {
         while (String(salesArr[row]['Date']) !== todayStr && row < salesArr.length) {
             row++;
         }
-        console.log(`Todays date of ${todayStr} found at row ${row} with value ${salesArr[row]['Prep Hours']} hours`);
         if (locationStr) {
             todayPrepHours = Number(salesArr[row]['Prep Hours']);
         }
@@ -932,10 +919,8 @@ async function getFirebaseData(locationStr = '') {
         while (String(salesArr[row]['Date']) !== todayStr && row < salesArr.length) {
             row++;
         }
-        console.log(`Todays date of ${todayStr} found at row ${row} with value ${salesArr[row]['Historical Sales']} dollars`);
         if (locationStr) {
             tomorrowSales = Number(salesArr[row]['Historical Sales']) + Number(salesArr[row + 1]['Historical Sales']);
-            console.log(`Today and tomorrow sales calculated to be ${tomorrowSales}`);
         }
         else {
             console.log('Error in getSpreadsheetData with tomorrow sales; default to 5000');
@@ -955,7 +940,6 @@ async function getFirebaseData(locationStr = '') {
             thisWeekSales += Number(salesArr[row + i]['Historical Sales']);
             thisWeekSalesArr[i - 1] = salesArr[row + i];
         }
-        console.log(`This week's sales calculated to be ${thisWeekSales}`);
         if (!locationStr) {
             console.log('Error in getSpreadsheetData with tomorrow sales; default to 7000');
             thisWeekSales = 7000;
